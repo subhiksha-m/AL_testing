@@ -1,0 +1,39 @@
+model:
+  model_tye:
+  model_path:
+  image_size:
+  embedding_size:
+
+data:
+  data_path:
+
+nn:
+  ref_img_path:
+  swipe_url:
+  simulate_label:
+  unlabled_path:
+  labeled_path:
+  positive_path:
+  negative_path:
+  unsure_path:
+  annoy:
+    num_nodes:
+    num_trees:
+    annoy_path:
+
+TrainModels:
+  dummy_dataset:
+  config_path:
+
+ActiveLabeler:
+  sample_size:
+
+
+AL_main:
+  newly_labled_path:
+  archive_path:
+  n_closest:
+
+
+
+
