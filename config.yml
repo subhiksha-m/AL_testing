@@ -1,39 +1,35 @@
 model:
-  model_tye:
-  model_path:
-  image_size:
-  embedding_size:
+  model_type:       simclr
+  model_path:       /content/SIMCLR_ssl_minicnn128_resisc2.ckpt
+  image_size:       256
+  embedding_size:   128
 
 data:
-  data_path:
+  data_path:        /content/Dataset
 
 nn:
-  ref_img_path:
+  ref_img_path:     /content/RESISC45/airplane/airplane_001.jpg
   swipe_url:
-  simulate_label:
-  unlabled_path:
-  labeled_path:
-  positive_path:
-  negative_path:
-  unsure_path:
-  annoy:
-    num_nodes:
-    num_trees:
-    annoy_path:
+  simulate_label:   True
+  unlabled_path:    /content/runtime/swipe/unlabeled
+  labeled_path:     /content/runtime/swipe/labeled
+  positive_path:    /content/runtime/swipe/labeled/positive
+  negative_path:    /content/runtime/swipe/labeled/negative
+  unsure_path:      /content/runtime/swipe/unsure
+annoy:
+    num_nodes:      128
+    num_trees:      50
+    annoy_path:     /content/runtime/NN_local/annoy_file.ann
 
 TrainModels:
-  dummy_dataset:
-  config_path:
+  dummy_dataset:    /content/dummy
+  config_path:      /content/AL_testing/ActiveLabeler-main/ActiveLabelerModels/config.yaml
 
 ActiveLabeler:
-  sample_size:
+  sample_size:      10
 
 
 AL_main:
-  newly_labled_path:
-  archive_path:
-  n_closest:
-
-
-
-
+  newly_labled_path:  /content/runtime/swipe/new_label
+  archive_path:       /content/runtime/swipe/archive
+  n_closest:        10

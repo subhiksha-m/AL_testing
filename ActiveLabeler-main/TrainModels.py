@@ -4,11 +4,11 @@ import pytorch_lightning as pl
 import yaml
 
 #Internal imports
-sys.path.insert(0, "Self-Supervised-Learner")
-sys.path.insert(1, "ActiveLabelerModels")
-from model import SIMCLR, SIMSIAM
-from .Linear_models import SSLEvaluator
-from .ClassifierModel import ClassifierModel
+# sys.path.insert(0, "Self-Supervised-Learner")
+# sys.path.insert(1, "ActiveLabelerModels")
+from models import SIMCLR, SIMSIAM
+from Linear_models import SSLEvaluator
+from ClassifierModel import ClassifierModel
 
 
 class TrainModels():

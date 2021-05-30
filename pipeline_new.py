@@ -23,6 +23,7 @@ import yaml
 import random
 import torchvision
 from torchvision import transforms
+from sys import exit
 
 ##sim search
 from torch.utils.data import DataLoader
@@ -56,8 +57,8 @@ import logging
 logging.info("APP START")
 
 sys.path.insert(0, "Self-Supervised-Learner")
-sys.path.insert(1, "ActiveLabelerModels")
-sys.path.insert(1, "ActiveLabeler-main")
+sys.path.insert(0, "ActiveLabelerModels")
+sys.path.insert(0, "ActiveLabeler-main")
 from models import CLASSIFIER
 from models import SIMCLR
 from models import SIMSIAM
@@ -92,13 +93,13 @@ class Pipeline:
         x = model(im)
         return x[0]
 
-    def get_nn_annoy(self, image_path, n_closest, num_nodes, annoy_path, data_path, disp=False):
+    def get_nn_annoy(self, image_path, n_closest, num_nodes, annoy_path, data_path,model, disp=False):
         # load dependencies
         u = AnnoyIndex(num_nodes, 'euclidean')
         u.load(annoy_path)
 
         # get image embedding
-        image_embedding = self.inference(image_path)
+        image_embedding = self.inference(image_path,model) #TODO embedding
 
         dataset_paths = list(paths.list_images(data_path))
 
@@ -123,8 +124,8 @@ class Pipeline:
                 im = t(im)
                 im = np.asarray(im).transpose(2, 0, 1)
                 im = torch.Tensor(im).unsqueeze(0).cuda()
-                #embedding = model(im)[0]
-                embedding = model.encoder(im)[-1]
+                embedding = model(im)[0]
+                #embedding = model.encoder(im)[-1]
                 embedding_matrix = torch.vstack((embedding_matrix, embedding))
         logging.info(f'Got embeddings. Embedding Shape: {embedding_matrix.shape}')
         print(f'\nGot embeddings. Embedding Shape: {embedding_matrix.shape}')
@@ -132,13 +133,12 @@ class Pipeline:
 
     def initialize_embeddings(self, image_size, embedding_size, model, dataset_paths, num_nodes, num_trees, annoy_path):
         self.embeddings = self.generate_embeddings(image_size, embedding_size, model, dataset_paths)
-        self.get_annoy_tree(self, num_nodes, self.embeddings, num_trees, annoy_path)
+        self.get_annoy_tree(embedding_size, self.embeddings, num_trees, annoy_path) #TODO numnodes = emb size
 
-
-    def search_similar(self, ref_imgs, n_closest):
+    def search_similar(self, ref_imgs, n_closest,num_nodes, annoy_path, data_path,model):
         image_names = set()
         for image_path in ref_imgs:
-            inds, dists = self.get_nn_annoy(image_path, n_closest)
+            inds, dists = self.get_nn_annoy(image_path, n_closest,num_nodes, annoy_path, data_path,model, False)
             for idx in inds:
                 image_names.add(self.dataset_paths[idx])
         image_names = list(image_names)
@@ -203,7 +203,7 @@ class Pipeline:
         logging.info(f"unlabeled list: {self.unlabeled_list}")
         logging.info(f"labeled list: {self.labled_list}")
 
-    def create_seed_dataset(self, ref_img,data_path,swipe_url,simulate_label,unlabled_path=None, labeled_path=None, positive_path=None, negative_path=None,
+    def create_seed_dataset(self, ref_img,data_path,swipe_url,simulate_label,num_nodes, annoy_path,model,unlabled_path=None, labeled_path=None, positive_path=None, negative_path=None,
                              unsure_path=None):
         iteration = 0
         n_closest = 1
@@ -213,19 +213,23 @@ class Pipeline:
 
             print("Enter n closest")
             n_closest = input()
-            if n_closest == 0: exit()
+            n_closest = int(n_closest)
+            if n_closest == 0: break
 
             ref_imgs = [ref_img] if iteration == 1 else paths.list_images(positive_path)
-            imgs = self.search_similar(ref_imgs, (n_closest * 8) // 10)
+            imgs = self.search_similar(ref_imgs, (n_closest * 8) // 10,num_nodes, annoy_path, data_path,model)
 
             # random sampling 80:20
             #n_20 = n_closest - n_closest * 8 // 10
             n_20 = len(imgs)//4
-            r_imgs = random.choices((self.unlabeled_list-imgs), k=n_20)
+            tmp1 = set(self.unlabeled_list)
+            tmp2 = set(imgs)
+            tmp3 = list( tmp1-tmp2)
+            r_imgs = random.choices(tmp3, k=n_20)
             imgs = imgs + r_imgs
 
-            self.label_data(imgs, data_path=data_path,swipe_url=swipe_url,simulate_label=simulate_label, unlabled_path=unlabled_path, labeled_path=labeled_path, positive_path=positive_path,
-                                  negative_path=negative_path, unsure_path=unsure_path)
+            self.label_data(imgs, data_path,swipe_url,simulate_label, unlabled_path, labeled_path, positive_path,
+                                  negative_path, unsure_path)
 
     def load_config(self, config_path):
         with open(config_path) as file:
@@ -286,14 +290,14 @@ class Pipeline:
         self.dataset_paths = list(paths.list_images(parameters['data']['data_path']))
         self.unlabeled_list = [i.split('/')[-1] for i in self.dataset_paths]
         self.labled_list = []
-        self.create_seed_dataset(parameters['nn']['ref_img_path'],parameters['data']['data_path'],parameters['nn']['swipe_url'],parameters['nn']['simulate_label'],
+        self.create_seed_dataset(parameters['nn']['ref_img_path'],parameters['data']['data_path'],parameters['nn']['swipe_url'],parameters['nn']['simulate_label'],parameters['annoy']['num_nodes'],parameters['annoy']['annoy_path'] ,model,
                                  parameters['nn']['unlabled_path'],parameters['nn']['labeled_path'],parameters['nn']['positive_path'],parameters['nn']['negative_path'],parameters['nn']['unsure_path'])
 
         logging.info('active_labeling')
         logging.info("Initializing active labeler and diversity algorithm class objects.")
         #whatever unlabled images left
         #has to be updated when not using diversity and using entire dataset
-        activelabeler = ActiveLabeler(self.create_emb_mapping(self.unlabeled_list), list(paths.list_images(self.unlabeled_list))
+        activelabeler = ActiveLabeler(self.create_emb_mapping(self.unlabeled_list), [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ] )
         #dummy dataset - 3/4 #TODO Create
         train_models = TrainModels(parameters['TrainModels']['config_path'],"./",parameters['TrainModels']['dummy_dataset'], "AL") #TODO saved model path # datapath => sub directory structure for datapath arg
         #TODO diversity
@@ -331,19 +335,19 @@ class Pipeline:
             #nn for each emb
             # label
             #archive => pos , neg
-            imgs = self.search_similar(strategy_images, parameters['AL_main']['n_closest'])
+            imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),parameters['annoy']['num_nodes'],parameters['annoy']['annoy_path'], parameters['data']['data_path'],model)
             imgs = imgs + strategy_images
 
-            self.label_data(imgs, data_path=parameters['data']['data_path'], swipe_url=parameters['nn']['swipe_url'], simulate_label=parameters['nn']['simulate_label'],
-                            unlabled_path=parameters['nn']['unlabled_path'], labeled_path=parameters['AL_main']['newly_labled_path'], positive_path=parameters['AL_main']['newly_labled_path']+"/positive",
-                            negative_path=parameters['AL_main']['newly_labled_path']+"/negative", unsure_path=None)
+            self.label_data(imgs, parameters['data']['data_path'], parameters['nn']['swipe_url'], parameters['nn']['simulate_label'],
+                            parameters['nn']['unlabled_path'], parameters['AL_main']['newly_labled_path'], parameters['AL_main']['newly_labled_path']+"/positive",
+                            parameters['AL_main']['newly_labled_path']+"/negative", None)
             for img in list(paths.list_images(newly_labled_path)):
                 shutil.copy(img,parameters['AL_main']['archive_path'])
             newly_labled_path = parameters['AL_main']['newly_labled_path']
             for img in list(paths.list_images(newly_labled_path)):
                 os.remove(img)
 
-            activelabeler.get_embeddings_offline(self.create_emb_mapping(self.unlabeled_list), list(paths.list_images(self.unlabeled_list))
+            activelabeler.get_embeddings_offline(self.create_emb_mapping(self.unlabeled_list), [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ])
 
             print("Enter c to continue")
             input_counter = input()
