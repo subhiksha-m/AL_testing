@@ -40,7 +40,6 @@ class ActiveLabeler():
         self.embeddings = emb
         self.images_path = data_paths
 
-
     def get_images_to_label_offline(self, model, sampling_strat, sample_size, strategy_params, device):
         #Load stuff
         model.eval()
