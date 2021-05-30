@@ -249,16 +249,18 @@ class Pipeline:
         model.eval()
         return model
 
-    def create_emb_label_mapping(self,img_names,positive_path,negative_path):
+    def create_emb_label_mapping(self,positive_path,negative_path):
         # emb_dataset = [[emb,label]..] 0-neg, 1 -pos
         emb_dataset= []
-        pos_label = list(paths.list_images(positive_path))
-        neg_label = list(paths.list_images(negative_path))
+        pos_label = [i.split("/")[-1] for i in list(paths.list_images(positive_path))]
+        neg_label = [i.split("/")[-1] for i in list(paths.list_images(negative_path))]
         i = -1
         for img_path in self.dataset_paths:
             i=i+1
-            if img_path.split("/")[-1] in img_names:
-                label = 1 if img_path.split("/")[-1] in pos_label else 0
+            if img_path.split("/")[-1] in pos_label:
+                label = 1
+            if img_path.split("/")[-1] in neg_label:
+                label = 0
                 emb_dataset.append([self.embeddings[i],label])
         return  emb_dataset
 
@@ -323,8 +325,8 @@ class Pipeline:
             #emb_dataset = [[emb,label]..]
             #newly_labeld
             #sample 80:20
-            emb_dataset = self.create_emb_label_mapping(newly_labled_path,parameters['nn']['positive_path'],parameters['nn']['negative_path'])
-            emb_dataset = random.sample(emb_dataset)
+            emb_dataset = self.create_emb_label_mapping(newly_labled_path + '/positive/',newly_labled_path + '/negative/')
+            emb_dataset = random.sample(emb_dataset, len(emb_dataset))
             n_80 = (len(emb_dataset)*8)//10
             training_dataset = DataLoader(emb_dataset[:n_80], batch_size = 32) #TODO yml
             validation_dataset = DataLoader(emb_dataset[n_80+1:], batch_size = 1)
