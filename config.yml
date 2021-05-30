@@ -1,8 +1,8 @@
 model:
   model_type:       simclr
-  model_path:       /content/SIMCLR_ssl_minicnn128_resisc2.ckpt
+  model_path:       /content/SIMCLR_ssl_resnet18_pretrained_full.ckpt
   image_size:       256
-  embedding_size:   128
+  embedding_size:   512
 
 data:
   data_path:        /content/Dataset
@@ -17,7 +17,7 @@ nn:
   negative_path:    /content/runtime/swipe/labeled/negative
   unsure_path:      /content/runtime/swipe/unsure
 annoy:
-    num_nodes:      128
+    num_nodes:      512
     num_trees:      50
     annoy_path:     /content/runtime/NN_local/annoy_file.ann
 
