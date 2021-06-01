@@ -47,7 +47,7 @@ class TrainModels():
         trainer = pl.Trainer(gpus=1, max_epochs=self.parameters['training']['epochs'])
         trainer.fit(self.model, training_dataset, validation_dataset)
         Path(self.model_path).mkdir(parents=True, exist_ok=True)
-        trainer.save_checkpoint(f"{self.model_path}{self.log_name}_{self.log_count}")
+        trainer.save_checkpoint(f"{self.model_path}{self.log_name}_{self.log_count}.ckpt")
         self.log_count += 1
     
     def train_linear(self, training_dataset, validation_dataset):
@@ -55,7 +55,7 @@ class TrainModels():
         trainer = pl.Trainer(gpus=1, max_epochs=self.parameters['training']['epochs'])
         trainer.fit(self.model, training_dataset, validation_dataset)
         Path(self.model_path).mkdir(parents=True, exist_ok=True)
-        trainer.save_checkpoint(f"{self.model_path}{self.log_name}_{self.log_count}")
+        trainer.save_checkpoint(f"{self.model_path}{self.log_name}_{self.log_count}.ckpt")
         self.log_count += 1
     
     def get_model(self):
