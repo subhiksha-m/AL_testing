@@ -30,6 +30,8 @@ ActiveLabeler:
 
 
 AL_main:
-  newly_labled_path:  /content/runtime/swipe/new_label
+  newly_labled_path:  /content/new_label
   archive_path:       /content/runtime/swipe/archive
-  n_closest:        10
+  n_closest:          10
+  al_folder:          /content/runtime/AL
+

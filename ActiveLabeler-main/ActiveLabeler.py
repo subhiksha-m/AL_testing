@@ -57,12 +57,12 @@ class ActiveLabeler():
             model_predictions = []
             for batch in tqdm(loader):
                 if device == "cuda":
-                    x = torch.cuda.FloatTensor(batch)
+                    x = torch.FloatTensor(batch).to(device)  # torch.cuda.FloatTensor(batch)
                 else:
                     x = torch.FloatTensor(batch)
                 predictions = model(x)
-                model_predictions.extend(predictions) 
-        
+                model_predictions.extend(predictions.cpu().detach().numpy())
+
         #Strategy
         model_predictions = np.array(model_predictions)
         subset = self.strategy(sampling_strat, model_predictions, sample_size, strategy_params)

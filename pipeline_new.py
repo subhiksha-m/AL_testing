@@ -259,6 +259,7 @@ class Pipeline:
             i=i+1
             if img_path.split("/")[-1] in pos_label:
                 label = 1
+                emb_dataset.append([self.embeddings[i], label])
             if img_path.split("/")[-1] in neg_label:
                 label = 0
                 emb_dataset.append([self.embeddings[i],label])
@@ -295,6 +296,7 @@ class Pipeline:
         self.create_seed_dataset(parameters['nn']['ref_img_path'],parameters['data']['data_path'],parameters['nn']['swipe_url'],parameters['nn']['simulate_label'],parameters['annoy']['num_nodes'],parameters['annoy']['annoy_path'] ,model,
                                  parameters['nn']['unlabled_path'],parameters['nn']['labeled_path'],parameters['nn']['positive_path'],parameters['nn']['negative_path'],parameters['nn']['unsure_path'])
 
+        os.chdir(parameters['AL_main']['al_folder'])
         logging.info('active_labeling')
         logging.info("Initializing active labeler and diversity algorithm class objects.")
         #whatever unlabled images left
@@ -338,37 +340,54 @@ class Pipeline:
             # label
             #archive => pos , neg
             imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),parameters['annoy']['num_nodes'],parameters['annoy']['annoy_path'], parameters['data']['data_path'],model)
-            imgs = imgs + strategy_images
+            #tmp1 = set(strategy_images)
+            tmp2 = set(imgs)
+            tmp2.update(strategy_images)
+            imgs = list(tmp2)
 
-            self.label_data(imgs, parameters['data']['data_path'], parameters['nn']['swipe_url'], parameters['nn']['simulate_label'],
-                            parameters['nn']['unlabled_path'], parameters['AL_main']['newly_labled_path'], parameters['AL_main']['newly_labled_path']+"/positive",
-                            parameters['AL_main']['newly_labled_path']+"/negative", None)
-            for img in list(paths.list_images(newly_labled_path)):
-                shutil.copy(img,parameters['AL_main']['archive_path'])
+            for img in list(paths.list_images(newly_labled_path+ "/positive")):
+                shutil.copy(img, parameters['AL_main']['archive_path']+ "/positive")
+            for img in list(paths.list_images(newly_labled_path + "/negative")):
+                shutil.copy(img, parameters['AL_main']['archive_path']+ "/negative")
             newly_labled_path = parameters['AL_main']['newly_labled_path']
             for img in list(paths.list_images(newly_labled_path)):
                 os.remove(img)
 
+            self.label_data(imgs, parameters['data']['data_path'], parameters['nn']['swipe_url'], parameters['nn']['simulate_label'],
+                            parameters['nn']['unlabled_path'], parameters['AL_main']['newly_labled_path'], parameters['AL_main']['newly_labled_path']+"/positive",
+                            parameters['AL_main']['newly_labled_path']+"/negative", None)
+
+
             activelabeler.get_embeddings_offline(self.create_emb_mapping(self.unlabeled_list), [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ])
 
-            print("Enter c to continue")
+            print("Enter c to continue") #TODO unrecognizable char
             input_counter = input()
-            if input_counter != 'c': exit()
+            if input_counter != 'c': break
 
-            #only for offline
-            #TODO model_confident
-            if iteration>3:
-                #  archive
-                # sample 80:20 #TODO
-                logging.info("model_confident")
-                archive_dataset = torchvision.datasets.ImageFolder("parameters['AL_main']['archive_path']", t)
-                training_dataset, validation_dataset= torch.utils.data.random_split(archive_dataset,[int(0.8*(len(archive_dataset))),int(0.2*(len(archive_dataset)))])
-                training_dataset = DataLoader(training_dataset, batch_size = 32)
-                validation_dataset = DataLoader(validation_dataset, batch_size = 1)
-                train_models.train_all(training_dataset, validation_dataset)
-                #self.initialize_embeddings(image_size, embedding_size, train_models.get_model(), dataset_paths, num_nodes, num_trees, annoy_path)
-                #forward pass - get_images_to_label_offline()
-                #label
-                #linear layer
+        for img in list(paths.list_images(newly_labled_path+ "/positive")):
+            shutil.copy(img, parameters['AL_main']['archive_path']+ "/positive")
+        for img in list(paths.list_images(newly_labled_path + "/negative")):
+            shutil.copy(img, parameters['AL_main']['archive_path']+ "/negative")
+        newly_labled_path = parameters['AL_main']['newly_labled_path']
+        for img in list(paths.list_images(newly_labled_path)):
+            os.remove(img)
+
+        #only for offline
+        #TODO model_confident
+        if iteration>=3:
+            #  archive
+            # sample 80:20 #TODO
+            logging.info("model_confident")
+            archive_dataset = torchvision.datasets.ImageFolder(parameters['AL_main']['archive_path'], t)
+            n_80 = (len(archive_dataset) * 8)//10
+            n_20 = len(archive_dataset) - n_80
+            training_dataset, validation_dataset= torch.utils.data.random_split(archive_dataset,[n_80,n_20])
+            training_dataset = DataLoader(training_dataset, batch_size = 32)
+            validation_dataset = DataLoader(validation_dataset, batch_size = 1)
+            train_models.train_all(training_dataset, validation_dataset)
+            #self.initialize_embeddings(image_size, embedding_size, train_models.get_model(), dataset_paths, num_nodes, num_trees, annoy_path)
+            #forward pass - get_images_to_label_offline()
+            #label
+            #linear layer
 
 

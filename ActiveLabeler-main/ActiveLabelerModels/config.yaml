@@ -1,6 +1,6 @@
 encoder:
   encoder_type: SIMCLR
-  encoder_path: PATH
+  encoder_path: /content/SIMCLR_ssl_resnet18_pretrained_full.ckpt
   e_embedding_size: 512
   e_lr: 1e-2
   train_encoder: False
@@ -17,7 +17,7 @@ classifier:
   c_final_lr: 1e-6
   c_momentum: 0.9
   c_scheduler_type: cosine # Help: cosine or step
-  c_weights: None
+  c_weights:
 
 miscellaneous:
   seed: 42
@@ -26,4 +26,3 @@ miscellaneous:
 
 training:
   epochs: 100
-  
