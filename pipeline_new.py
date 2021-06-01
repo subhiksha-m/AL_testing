@@ -347,6 +347,7 @@ class Pipeline:
         #AL new flow - combining linear model and finetuning
 
         iteration = 0
+        model_type = "model"
         newly_labled_path = parameters['nn']['labeled_path']  #seed dataset
         while True:
             iteration += 1
@@ -379,8 +380,10 @@ class Pipeline:
                 os.remove(img)
 
             if input_counter == 'f':
+                model_type = "encoder"
                 #put seed in archive path
                 # train all = create dataloader on archive dataset & split , train all  , get uncertain
+                model_type = "encoder"
                 archive_dataset = torchvision.datasets.ImageFolder(parameters['AL_main']['archive_path'], t)
                 n_80 = (len(archive_dataset) * 8) // 10
                 n_20 = len(archive_dataset) - n_80
@@ -396,8 +399,9 @@ class Pipeline:
                 self.initialize_emb_counter += 1
                 parameters['annoy']['annoy_path'] = parameters['annoy'][
                                                         'annoy_path'] + f"{self.initialize_emb_counter}"
+                encoder =  train_models.get_model()
                 self.initialize_embeddings(parameters['model']['image_size'], parameters['model']['embedding_size'],
-                                           train_models.get_model(),
+                                           encoder,
                                            [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ],
                                            parameters['annoy']['num_nodes'],
                                            parameters['annoy']['num_trees'], parameters['annoy']['annoy_path'],"encoder")
@@ -407,12 +411,13 @@ class Pipeline:
                                                   image_name in self.unlabeled_list])
 
             # AL.getimgstolabel => uncertain imgs => nn
+            curr_model = model if model_type =="model" else encoder
             strategy_embeddings, strategy_images = activelabeler.get_images_to_label_offline(
-                train_models.get_model(), "uncertainty", parameters['ActiveLabeler']['sample_size'], None, "cuda")
+                curr_model, "uncertainty", parameters['ActiveLabeler']['sample_size'], None, "cuda")
 
             imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),
                                        parameters['annoy']['num_nodes'], parameters['annoy']['annoy_path'],
-                                       None, train_models.get_model(),"encoder") #TODO inference model this works
+                                       None, curr_model,model_type) #TODO inference model this works
             # tmp1 = set(strategy_images)
             tmp2 = set(imgs)
             tmp2.update(strategy_images)
