@@ -64,7 +64,7 @@ class ActiveLabeler():
                     x = torch.FloatTensor(batch).to(device)  # torch.cuda.FloatTensor(batch)
                 else:
                     x = torch.FloatTensor(batch)
-                predictions = model(x)
+                predictions = model.linear_model(x)
                 model_predictions.extend(predictions.cpu().detach().numpy())
 
         #Strategy
