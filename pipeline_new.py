@@ -398,14 +398,17 @@ class Pipeline:
                 self.initialize_emb_counter += 1
                 parameters['annoy']['annoy_path'] = parameters['annoy'][
                                                         'annoy_path'] + f"{self.initialize_emb_counter}"
-                encoder =  train_models.get_model()
+                encoder =  train_models.get_model().to("cuda") #TODO device
                 self.initialize_embeddings(parameters['model']['image_size'], parameters['model']['embedding_size'],
                                            encoder,
                                            [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ],
                                            parameters['annoy']['num_nodes'],
                                            parameters['annoy']['num_trees'], parameters['annoy']['annoy_path'],"encoder")
                 #update AL class with new emb
-                activelabeler.get_embeddings_offline(self.create_emb_mapping(self.unlabeled_list),
+                mapping =[]
+                for i in len(self.unlabeled_list):
+                    mapping.append(self.embeddings[i])
+                activelabeler.get_embeddings_offline(mapping,
                                                  [parameters['data']['data_path'] + "/Unlabeled/" + image_name for
                                                   image_name in self.unlabeled_list])
 
@@ -429,7 +432,13 @@ class Pipeline:
                             parameters['AL_main']['newly_labled_path'] + "/negative", None)
 
             #update embeddings with unlabeled image embeddings #TODO check initializations
-            activelabeler.get_embeddings_offline(self.create_emb_mapping(self.unlabeled_list), [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ])
+            mapping = []
+            if model_type=="encoder":
+                for i in len(self.unlabeled_list):
+                    mapping.append(self.embeddings[i])
+            else:
+                mapping = self.create_emb_mapping(self.unlabeled_list)
+            activelabeler.get_embeddings_offline(mapping, [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ])
 
 
         # iteration= 0
