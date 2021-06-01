@@ -5,6 +5,10 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
+
+random.seed(100)
+
+
 class ActiveLabeler():
     def __init__(self, embeddings, images_path):
         self.embeddings = embeddings

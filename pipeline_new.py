@@ -55,6 +55,7 @@ import sys
 import logging
 
 logging.info("APP START")
+random.seed(100)
 
 sys.path.insert(0, "Self-Supervised-Learner")
 sys.path.insert(0, "ActiveLabelerModels")
@@ -385,6 +386,7 @@ class Pipeline:
             training_dataset = DataLoader(training_dataset, batch_size = 32)
             validation_dataset = DataLoader(validation_dataset, batch_size = 1)
             train_models.train_all(training_dataset, validation_dataset)
+            #emb from unlabeled pool, AL.getimgstolabel => uncertain imgs => nn   => ask user linear or entire ,
             #self.initialize_embeddings(image_size, embedding_size, train_models.get_model(), dataset_paths, num_nodes, num_trees, annoy_path)
             #forward pass - get_images_to_label_offline()
             #label

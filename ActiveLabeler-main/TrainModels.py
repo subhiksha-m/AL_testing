@@ -3,6 +3,9 @@ import sys
 import pytorch_lightning as pl
 import yaml
 
+import random
+random.seed(100)
+
 #Internal imports
 # sys.path.insert(0, "Self-Supervised-Learner")
 # sys.path.insert(1, "ActiveLabelerModels")
