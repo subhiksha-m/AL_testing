@@ -25,4 +25,4 @@ miscellaneous:
   device: cuda
 
 training:
-  epochs: 100
+  epochs: 2

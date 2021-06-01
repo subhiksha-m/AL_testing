@@ -406,7 +406,7 @@ class Pipeline:
                                            parameters['annoy']['num_trees'], parameters['annoy']['annoy_path'],"encoder")
                 #update AL class with new emb
                 mapping =[]
-                for i in len(self.unlabeled_list):
+                for i in range(len(self.unlabeled_list)):
                     mapping.append(self.embeddings[i])
                 activelabeler.get_embeddings_offline(mapping,
                                                  [parameters['data']['data_path'] + "/Unlabeled/" + image_name for
@@ -434,7 +434,7 @@ class Pipeline:
             #update embeddings with unlabeled image embeddings #TODO check initializations
             mapping = []
             if model_type=="encoder":
-                for i in len(self.unlabeled_list):
+                for i in range(len(self.unlabeled_list)):
                     mapping.append(self.embeddings[i])
             else:
                 mapping = self.create_emb_mapping(self.unlabeled_list)
