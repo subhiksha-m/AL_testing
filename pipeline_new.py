@@ -383,7 +383,6 @@ class Pipeline:
                 model_type = "encoder"
                 #put seed in archive path
                 # train all = create dataloader on archive dataset & split , train all  , get uncertain
-                model_type = "encoder"
                 archive_dataset = torchvision.datasets.ImageFolder(parameters['AL_main']['archive_path'], t)
                 n_80 = (len(archive_dataset) * 8) // 10
                 n_20 = len(archive_dataset) - n_80
@@ -413,7 +412,7 @@ class Pipeline:
             # AL.getimgstolabel => uncertain imgs => nn
             curr_model = model if model_type =="model" else encoder
             strategy_embeddings, strategy_images = activelabeler.get_images_to_label_offline(
-                curr_model, "uncertainty", parameters['ActiveLabeler']['sample_size'], None, "cuda")
+                train_models.get_model(), "uncertainty", parameters['ActiveLabeler']['sample_size'], None, "cuda")
 
             imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),
                                        parameters['annoy']['num_nodes'], parameters['annoy']['annoy_path'],
