@@ -313,7 +313,7 @@ class Pipeline:
 
         logging.info('initialize_embeddings')
         self.initialize_emb_counter +=1
-        parameters['annoy']['annoy_path'] = parameters['annoy']['annoy_path'] + +f"{self.initialize_emb_counter}"
+        parameters['annoy']['annoy_path'] = parameters['annoy']['annoy_path'] + f"{self.initialize_emb_counter}"
         self.initialize_embeddings(parameters['model']['image_size'], parameters['model']['embedding_size'], model,
                                    list(paths.list_images(parameters['data']['data_path'])), parameters['annoy']['num_nodes'],
                                    parameters['annoy']['num_trees'], parameters['annoy']['annoy_path'])
@@ -395,7 +395,7 @@ class Pipeline:
                 logging.info('initialize_embeddings')
                 self.initialize_emb_counter += 1
                 parameters['annoy']['annoy_path'] = parameters['annoy'][
-                                                        'annoy_path'] + +f"{self.initialize_emb_counter}"
+                                                        'annoy_path'] + f"{self.initialize_emb_counter}"
                 self.initialize_embeddings(parameters['model']['image_size'], parameters['model']['embedding_size'],
                                            train_models.get_model(),
                                            [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ],
