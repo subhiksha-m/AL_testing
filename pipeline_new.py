@@ -248,7 +248,7 @@ class Pipeline:
             tmp1 = set(self.unlabeled_list)
             tmp2 = set(imgs)
             tmp3 = list( tmp1-tmp2)
-            r_imgs = random.choices(tmp3, k=n_20)
+            r_imgs = random.sample(tmp3, k=n_20)
             imgs = imgs + r_imgs
 
             self.label_data(imgs, data_path,swipe_url,simulate_label, unlabled_path, labeled_path, positive_path,
@@ -470,6 +470,7 @@ class Pipeline:
                 mapping = self.create_emb_mapping(self.unlabeled_list)
             activelabeler.get_embeddings_offline(mapping, [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ])
 
+            #--TEST
             # step, class, model_type append in main
             self.metrics["step"].append(iteration)
             self.metrics["class"].append(parameters["test"]["class"])
@@ -479,7 +480,7 @@ class Pipeline:
 
         #TODO move whatever labeled left to archive when quitting
 
-        #---metrics to csv conversion
+        #--CSV = metrics to csv conversion
         df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
         df.to_csv(parameters["test"]["metric_csv_path"])
 
