@@ -37,6 +37,8 @@ import pickle
 import os
 from tqdm.notebook import tqdm
 from torchvision import transforms
+from sklearn.metrics import precision_score,recall_score, f1_score
+import pandas as pd
 
 import shutil
 
@@ -65,6 +67,7 @@ from models import SIMCLR
 from models import SIMSIAM
 from ActiveLabeler import ActiveLabeler
 from TrainModels import TrainModels
+
 #from SimilaritySearch import SimilaritySearch
 #from Diversity_Algorithm.diversity_func import Diversity
 
@@ -78,6 +81,7 @@ class Pipeline:
         self.embeddings = None
         self.div_embeddings = None
         self.initialize_emb_counter =0
+        self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"recall":[] }
 
     # similiarity search class
     def get_annoy_tree(self, num_nodes, embeddings, num_trees, annoy_path):
@@ -92,12 +96,8 @@ class Pipeline:
         im = Image.open(image_path).convert('RGB')
         image = np.transpose(im, (2, 0, 1)).copy()
         im = torch.tensor(image).unsqueeze(0).float().cuda()
-        if model_type == "model":
-            x = model(im)
-            x=x[0]
-        else:
-            x = model(im)[-1]
-        return x
+        x = model(im) if model_type == "model" else model.encoder(im)[-1]
+        return x[0]
 
 
     def get_nn_annoy(self, image_path, n_closest, num_nodes, annoy_path, data_path,model, model_type,disp=False):
@@ -298,6 +298,33 @@ class Pipeline:
                 emb_dataset.append(self.embeddings[i])
         return  emb_dataset
 
+    def test_data(self, model,test_path,t,device="cuda"):
+        test_dataset = torchvision.datasets.ImageFolder(test_path, t)
+        loader = DataLoader(test_dataset, batch_size=1)
+        #TODO confirm metrics with anirudh
+
+        model.eval()
+        op = []
+        gt = []
+        with torch.no_grad():
+            for step, (x, y) in enumerate(loader):
+                x = x.to(device)
+                y = y.to(device)
+                output = model(x)
+                inds = torch.argmax(output, dim=1)
+                op.append(inds)
+                gt.append(y.item())
+            prec = precision_score(gt, op)
+            rec = recall_score(gt, op)
+            f1 = f1_score(gt, op)
+            # write code to append to dictionary
+            #         self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"recall":[] }
+            #step, class append, model_type in main
+            self.metrics["f1_score"].append(f1)
+            self.metrics["precision"].append(prec)
+            self.metrics["recall"].append(rec)
+
+
 
     def main(self):
         # offline
@@ -312,7 +339,7 @@ class Pipeline:
         model = self.load_model(parameters['model']['model_type'], parameters['model']['model_path'], parameters['data']['data_path'])
 
         logging.info('initialize_embeddings')
-        self.initialize_emb_counter +=1
+        self.initialize_emb_counter +=1 #TODO use _0 and then iteration number for later
         parameters['annoy']['annoy_path'] = parameters['annoy']['annoy_path'] + f"{self.initialize_emb_counter}"
         self.initialize_embeddings(parameters['model']['image_size'], parameters['model']['embedding_size'], model,
                                    list(paths.list_images(parameters['data']['data_path'])), parameters['annoy']['num_nodes'],
@@ -399,11 +426,13 @@ class Pipeline:
                 parameters['annoy']['annoy_path'] = parameters['annoy'][
                                                         'annoy_path'] + f"{self.initialize_emb_counter}"
                 encoder =  train_models.get_model().to("cuda") #TODO device
+                self.dataset_paths = [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ]
                 self.initialize_embeddings(parameters['model']['image_size'], parameters['model']['embedding_size'],
                                            encoder,
                                            [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ],
                                            parameters['annoy']['num_nodes'],
                                            parameters['annoy']['num_trees'], parameters['annoy']['annoy_path'],"encoder")
+
                 #update AL class with new emb
                 mapping =[]
                 for i in range(len(self.unlabeled_list)):
@@ -416,7 +445,8 @@ class Pipeline:
             curr_model = model if model_type =="model" else encoder
             strategy_embeddings, strategy_images = activelabeler.get_images_to_label_offline(
                 train_models.get_model(), "uncertainty", parameters['ActiveLabeler']['sample_size'], None, "cuda")
-
+            #train_models.get_model().train_encoder=False
+            # train_models.get_model().freeze_encoder()
             imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),
                                        parameters['annoy']['num_nodes'], parameters['annoy']['annoy_path'],
                                        None, curr_model,model_type) #TODO inference model this works
@@ -440,6 +470,18 @@ class Pipeline:
                 mapping = self.create_emb_mapping(self.unlabeled_list)
             activelabeler.get_embeddings_offline(mapping, [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ])
 
+            # step, class, model_type append in main
+            self.metrics["step"].append(iteration)
+            self.metrics["class"].append(parameters["test"]["class"])
+            self.metrics["model_type"].append(input_counter)
+            self.test_data(train_models.get_model(),parameters["test"]["test_path"],t)
+
+
+        #TODO move whatever labeled left to archive when quitting
+
+        #---metrics to csv conversion
+        df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
+        df.to_csv(parameters["test"]["metric_csv_path"])
 
         # iteration= 0
         # newly_labled_path = parameters['nn']['labeled_path']

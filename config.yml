@@ -7,6 +7,11 @@ model:
 data:
   data_path:        /content/Dataset
 
+test:
+  metric_csv_path: /content/metrics.csv
+  test_path:       /content/TestData
+  class:           airplane
+
 nn:
   ref_img_path:     /content/RESISC45/airplane/airplane_001.jpg
   swipe_url:
