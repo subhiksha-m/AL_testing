@@ -310,7 +310,9 @@ class Pipeline:
             for step, (x, y) in enumerate(loader):
                 x = x.to(device)
                 y = y.to(device)
-                output = model(x)
+                feats = model.encoder(x)[-1]
+                feats = feats.view(feats.size(0), -1)
+                output = model.linear_model(feats)
                 inds = torch.argmax(output, dim=1)
                 op.append(inds)
                 gt.append(y.item())
@@ -328,6 +330,7 @@ class Pipeline:
 
     def main(self):
         # offline
+        # TODO printing and logging
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++
         #seed dataset
