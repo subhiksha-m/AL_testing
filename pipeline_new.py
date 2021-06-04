@@ -37,7 +37,8 @@ import pickle
 import os
 from tqdm.notebook import tqdm
 from torchvision import transforms
-from sklearn.metrics import precision_score,recall_score, f1_score
+from sklearn.metrics import precision_score,recall_score, f1_score, accuracy_score
+
 import pandas as pd
 
 import shutil
@@ -81,7 +82,7 @@ class Pipeline:
         self.embeddings = None
         self.div_embeddings = None
         self.initialize_emb_counter =0
-        self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"recall":[] }
+        self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"accuracy":[], "recall":[],"train_ratio":[],"pos_train_img":[],"neg_train_imgs":[] }
 
     # similiarity search class
     def get_annoy_tree(self, num_nodes, embeddings, num_trees, annoy_path):
@@ -173,6 +174,7 @@ class Pipeline:
             self.labled_list.append(image_name)
 
         logging.debug(f"images sent to labeling: {image_names}")
+        #TODO swipe labeler
         self.swipe_label_simulate(swipe_url=swipe_url,simulate_label=simulate_label,unlabled_path=unlabeled_path, labeled_path=labeled_path, positive_path=postive_path,
                                   negative_path=negative_path, unsure_path=unsure_path)
 
@@ -303,6 +305,7 @@ class Pipeline:
         loader = DataLoader(test_dataset, batch_size=1)
         #TODO confirm metrics with anirudh
 
+        #model.to(device)
         model.eval()
         op = []
         gt = []
@@ -319,12 +322,14 @@ class Pipeline:
             prec = precision_score(gt, op)
             rec = recall_score(gt, op)
             f1 = f1_score(gt, op)
+            acc = accuracy_score(gt,op)
             # write code to append to dictionary
             #         self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"recall":[] }
             #step, class append, model_type in main
             self.metrics["f1_score"].append(f1)
             self.metrics["precision"].append(prec)
             self.metrics["recall"].append(rec)
+            self.metrics["accuracy"].append(acc)
 
 
 
@@ -391,6 +396,14 @@ class Pipeline:
                 #linear = create newly labeled emb, sample and split , get uncertain
                 emb_dataset = self.create_emb_label_mapping(newly_labled_path + '/positive/',
                                                             newly_labled_path + '/negative/')
+
+                #"train_ratio": [], "pos_train_img": [], "neg_train_imgs": []}
+                tmp_p = len(list(paths.list_images(newly_labled_path + "/positive")))
+                tmp_n = len(list(paths.list_images(newly_labled_path + "/negative")))
+                self.metrics["pos_train_img"].append(tmp_p)
+                self.metrics["negative"].append(tmp_n)
+                self.metrics["train_ratio"].append(tmp_n/tmp_p)
+
                 emb_dataset = random.sample(emb_dataset, len(emb_dataset))
                 n_80 = (len(emb_dataset) * 8) // 10
                 training_dataset = DataLoader(emb_dataset[:n_80], batch_size=32)  # TODO yml
@@ -413,6 +426,14 @@ class Pipeline:
                 model_type = "encoder"
                 #put seed in archive path
                 # train all = create dataloader on archive dataset & split , train all  , get uncertain
+
+                # "train_ratio": [], "pos_train_img": [], "neg_train_imgs": []}
+                tmp_p = len(list(paths.list_images(archive_dataset + "/positive")))
+                tmp_n = len(list(paths.list_images(archive_dataset + "/negative")))
+                self.metrics["pos_train_img"].append(tmp_p)
+                self.metrics["negative"].append(tmp_n)
+                self.metrics["train_ratio"].append(tmp_n / tmp_p)
+
                 archive_dataset = torchvision.datasets.ImageFolder(parameters['AL_main']['archive_path'], t)
                 n_80 = (len(archive_dataset) * 8) // 10
                 n_20 = len(archive_dataset) - n_80
