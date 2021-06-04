@@ -4,6 +4,8 @@ from tqdm import tqdm
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+from torchvision import transforms
+from torchvision.datasets import ImageFolder
 
 
 random.seed(100)
@@ -76,3 +78,40 @@ class ActiveLabeler():
         strategy_images = np.array([i for i in image_paths])[subset]
 
         return strategy_embeddings, strategy_images
+
+    def get_probablities(self, DATA_PATH, model, prob,image_size):
+
+        #model = CLASSIFIER.CLASSIFIER.load_from_checkpoint(MODEL_PATH)
+        #pass as data_path
+        #evaluation data_p / pos => all positive images => how many imgs model thinks is pos with accuracy of 0.8 => pos_class_confidence
+        #evaluation data_n /neg  =>  all neg images => same => neg_class_confidence_0.8
+        #pos,neg => 0.8 0.5  = prob
+
+        unlabled_probablites = []
+        model.eval()
+        model.cuda()
+
+        def to_tensor(pil):
+            return torch.tensor(np.array(pil)).permute(2, 0, 1).float()
+
+        t = transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+            transforms.Lambda(to_tensor)
+        ])
+        dataset = ImageFolder(DATA_PATH, transform=t)
+        with torch.no_grad():
+            bs = 128
+            if len(dataset) < bs:
+                bs = 1
+            loader = DataLoader(dataset, batch_size=bs, shuffle=False)
+            for batch in tqdm(loader):
+                x = batch[0].cuda()
+                predictions = model(x)
+                unlabled_probablites.extend(predictions.detach().cpu().numpy())
+        positive_predictions = np.array([unlabled_probablites[i][1] for i in range(len(unlabled_probablites))])
+        count = 0
+        for i in positive_predictions:
+            if i > prob:
+                count += 1 #TODO count , median
+        #median positive_predictions np.median(pos_predic)
+        return positive_predictions
