@@ -38,7 +38,7 @@ import os
 from tqdm.notebook import tqdm
 from torchvision import transforms
 from sklearn.metrics import precision_score,recall_score, f1_score, accuracy_score
-
+import time
 import pandas as pd
 
 import shutil
@@ -83,7 +83,7 @@ class Pipeline:
         self.div_embeddings = None
         self.initialize_emb_counter =0
         self.class_name = class_name
-        self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"accuracy":[], "recall":[],"train_ratio":[],"pos_train_img":[],"neg_train_imgs":[],
+        self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"accuracy":[], "recall":[],"train_ratio":[],"pos_train_img":[],"neg_train_imgs":[], "train_time":[],
                         "pos_class_confidence_0.8":[],"pos_class_confidence_0.5":[],"pos_class_confidence_median":[],"neg_class_confidence_0.8":[],"neg_class_confidence_0.5":[],"neg_class_confidence_median":[] }
 
     # similiarity search class
@@ -418,7 +418,10 @@ class Pipeline:
                 n_80 = (len(emb_dataset) * 8) // 10
                 training_dataset = DataLoader(emb_dataset[:n_80], batch_size=32)  # TODO yml
                 validation_dataset = DataLoader(emb_dataset[n_80 + 1:], batch_size=1)
+                tic = time.perf_counter()
                 train_models.train_linear(training_dataset, validation_dataset)
+                toc = time.perf_counter()
+                self.metrics["train_time"].append((tic - toc)//60)
                 # {self.model_path}AL_0
                 # strategy_embeddings, strategy_images = activelabeler.get_images_to_label_offline(
                 #     train_models.get_model(), "uncertainty", parameters['ActiveLabeler']['sample_size'], None, "cuda")
@@ -450,7 +453,10 @@ class Pipeline:
                 training_dataset, validation_dataset = torch.utils.data.random_split(archive_dataset, [n_80, n_20])
                 training_dataset = DataLoader(training_dataset, batch_size=32)
                 validation_dataset = DataLoader(validation_dataset, batch_size=1)
+                toc = time.perf_counter()
                 train_models.train_all(training_dataset, validation_dataset)
+                toc = time.perf_counter()
+                self.metrics["train_time"].append((tic - toc)//60)
                 #change generate emb again => using encoder from model from train_all
                 # emb from unlabeled pool => need to update AL with new emb ??
                 # x = torchvision.datasets.ImageFolder(parameters['AL_main']['archive_path'], t)
