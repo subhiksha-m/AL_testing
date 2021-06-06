@@ -403,7 +403,7 @@ class Pipeline:
                 tmp_p = len(list(paths.list_images(newly_labled_path + "/positive")))
                 tmp_n = len(list(paths.list_images(newly_labled_path + "/negative")))
                 self.metrics["pos_train_img"].append(tmp_p)
-                self.metrics["neg_train_imgs".append(tmp_n)
+                self.metrics["neg_train_imgs"].append(tmp_n)
                 self.metrics["train_ratio"].append(tmp_n/tmp_p)
 
                 emb_dataset = random.sample(emb_dataset, len(emb_dataset))
@@ -433,7 +433,7 @@ class Pipeline:
                 tmp_p = len(list(paths.list_images(archive_dataset + "/positive")))
                 tmp_n = len(list(paths.list_images(archive_dataset + "/negative")))
                 self.metrics["pos_train_img"].append(tmp_p)
-                self.metrics["neg_train_imgs".append(tmp_n)
+                self.metrics["neg_train_imgs"].append(tmp_n)
                 self.metrics["train_ratio"].append(tmp_n / tmp_p)
 
                 archive_dataset = torchvision.datasets.ImageFolder(parameters['AL_main']['archive_path'], t)
