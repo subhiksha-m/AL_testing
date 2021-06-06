@@ -11,6 +11,7 @@ test:
   metric_csv_path: /content/metrics.csv
   test_path:       /content/TestData
   class:           airplane
+  evaluation_path: /content/Evaluation_Data
 
 nn:
   ref_img_path:     /content/RESISC45/airplane/airplane_001.jpg
@@ -21,6 +22,7 @@ nn:
   positive_path:    /content/runtime/swipe/labeled/positive
   negative_path:    /content/runtime/swipe/labeled/negative
   unsure_path:      /content/runtime/swipe/unsure
+
 annoy:
     num_nodes:      512
     num_trees:      50
@@ -32,11 +34,12 @@ TrainModels:
 
 ActiveLabeler:
   sample_size:      10
-
+  sampling_strategy: "uncertainty" # "random"
 
 AL_main:
   newly_labled_path:  /content/new_label
   archive_path:       /content/runtime/swipe/archive
   n_closest:          10
   al_folder:          /content/runtime/AL
+
 

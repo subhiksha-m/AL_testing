@@ -74,7 +74,7 @@ from TrainModels import TrainModels
 
 
 class Pipeline:
-    def __init__(self, config_path):
+    def __init__(self, config_path,class_name):
         self.config_path = config_path
         self.dataset_paths=[]
         self.unlabeled_list = []
@@ -82,7 +82,9 @@ class Pipeline:
         self.embeddings = None
         self.div_embeddings = None
         self.initialize_emb_counter =0
-        self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"accuracy":[], "recall":[],"train_ratio":[],"pos_train_img":[],"neg_train_imgs":[] }
+        self.class_name = class_name
+        self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"accuracy":[], "recall":[],"train_ratio":[],"pos_train_img":[],"neg_train_imgs":[],
+                        "pos_class_confidence_0.8":[],"pos_class_confidence_0.5":[],"pos_class_confidence_median":[],"neg_class_confidence_0.8":[],"neg_class_confidence_0.5":[],"neg_class_confidence_median":[] }
 
     # similiarity search class
     def get_annoy_tree(self, num_nodes, embeddings, num_trees, annoy_path):
@@ -157,7 +159,7 @@ class Pipeline:
         return image_names
 
     def label_data(self, image_paths_or_names, data_path, swipe_url,simulate_label=False,unlabeled_path=None, labeled_path=None, postive_path=None,
-                   negative_path=None, unsure_path=None):
+                   negative_path=None, unsure_path=None,class_name="airplane"):
 
         logging.info("Deduplicate and prepare for labeling")
 
@@ -176,10 +178,10 @@ class Pipeline:
         logging.debug(f"images sent to labeling: {image_names}")
         #TODO swipe labeler
         self.swipe_label_simulate(swipe_url=swipe_url,simulate_label=simulate_label,unlabled_path=unlabeled_path, labeled_path=labeled_path, positive_path=postive_path,
-                                  negative_path=negative_path, unsure_path=unsure_path)
+                                  negative_path=negative_path, unsure_path=unsure_path,class_name=class_name)
 
     def swipe_label_simulate(self, swipe_url, simulate_label=False,unlabled_path=None, labeled_path=None, positive_path=None, negative_path=None,
-                             unsure_path=None):
+                             unsure_path=None,class_name="airplane"):
         logging.info("Calling swipe labeler")
         print(f'\n {len(list(paths.list_images(unlabled_path)))} images to label. Go to {swipe_url}')
 
@@ -190,7 +192,7 @@ class Pipeline:
         if simulate_label: # TODO
             for img in list(paths.list_images(unlabled_path)):
                 src = unlabled_path + "/" + img.split('/')[-1]
-                dest = (positive_path + "/" + img.split('/')[-1]) if "airplane" in img else (
+                dest = (positive_path + "/" + img.split('/')[-1]) if class_name in img else (
                         negative_path + "/" + img.split('/')[-1])
                 shutil.move(src, dest)
 
@@ -229,7 +231,7 @@ class Pipeline:
 
 
     def create_seed_dataset(self, ref_img,data_path,swipe_url,simulate_label,num_nodes, annoy_path,model,unlabled_path=None, labeled_path=None, positive_path=None, negative_path=None,
-                             unsure_path=None):
+                             unsure_path=None,class_name="airplane"):
         iteration = 0
         n_closest = 1
         while True:
@@ -254,7 +256,7 @@ class Pipeline:
             imgs = imgs + r_imgs
 
             self.label_data(imgs, data_path,swipe_url,simulate_label, unlabled_path, labeled_path, positive_path,
-                                  negative_path, unsure_path)
+                                  negative_path, unsure_path,class_name)
 
     def load_config(self, config_path):
         with open(config_path) as file:
@@ -358,7 +360,7 @@ class Pipeline:
         self.unlabeled_list = [i.split('/')[-1] for i in self.dataset_paths]
         self.labled_list = []
         self.create_seed_dataset(parameters['nn']['ref_img_path'],parameters['data']['data_path'],parameters['nn']['swipe_url'],parameters['nn']['simulate_label'],parameters['annoy']['num_nodes'],parameters['annoy']['annoy_path'] ,model,
-                                 parameters['nn']['unlabled_path'],parameters['nn']['labeled_path'],parameters['nn']['positive_path'],parameters['nn']['negative_path'],parameters['nn']['unsure_path'])
+                                 parameters['nn']['unlabled_path'],parameters['nn']['labeled_path'],parameters['nn']['positive_path'],parameters['nn']['negative_path'],parameters['nn']['unsure_path'],self.class_name)
 
         os.chdir(parameters['AL_main']['al_folder'])
         logging.info('active_labeling')
@@ -465,10 +467,10 @@ class Pipeline:
                                                  [parameters['data']['data_path'] + "/Unlabeled/" + image_name for
                                                   image_name in self.unlabeled_list])
 
-            # AL.getimgstolabel => uncertain imgs => nn
+            # AL.getimgstolabel => uncertain imgs => nn sampling_strategy
             curr_model = model if model_type =="model" else encoder
             strategy_embeddings, strategy_images = activelabeler.get_images_to_label_offline(
-                train_models.get_model(), "uncertainty", parameters['ActiveLabeler']['sample_size'], None, "cuda")
+                train_models.get_model(),parameters['ActiveLabeler']['sampling_strategy'] , parameters['ActiveLabeler']['sample_size'], None, "cuda")
             #train_models.get_model().train_encoder=False
             # train_models.get_model().freeze_encoder()
             imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),
@@ -483,7 +485,7 @@ class Pipeline:
                             parameters['nn']['simulate_label'],
                             parameters['nn']['unlabled_path'], parameters['AL_main']['newly_labled_path'],
                             parameters['AL_main']['newly_labled_path'] + "/positive",
-                            parameters['AL_main']['newly_labled_path'] + "/negative", None)
+                            parameters['AL_main']['newly_labled_path'] + "/negative", None,self.class_name)
 
             #update embeddings with unlabeled image embeddings #TODO check initializations
             mapping = []
@@ -497,16 +499,42 @@ class Pipeline:
             #--TEST
             # step, class, model_type append in main
             self.metrics["step"].append(iteration)
-            self.metrics["class"].append(parameters["test"]["class"])
+            self.metrics["class"].append(self.class_name)
             self.metrics["model_type"].append(input_counter)
             self.test_data(train_models.get_model(),parameters["test"]["test_path"],t)
+            tmp_prob= activelabeler.get_probablities(parameters["test"]["evaluation_path"]+"/posititve",train_models.get_model(),0.8,parameters['model']['image_size'])
+            count_8 = 0
+            count_5 = 0
+            for i in tmp_prob:
+                if i > 0.8:
+                    count_8 += 1
+                if i > 0.5:
+                    count_5 += 1
+            self.metrics["pos_class_confidence_0.8"].append(count_8)
+            self.metrics["pos_class_confidence_0.5"].append(count_5)
+            self.metrics["pos_class_confidence_median"].append(np.median(tmp_prob))
+
+            tmp_prob = activelabeler.get_probablities(parameters["test"]["evaluation_path"] + "/negative",
+                                                      train_models.get_model(), 0.8, parameters['model']['image_size'])
+            count_8 = 0
+            count_5 = 0
+            for i in tmp_prob:
+                if i > 0.8:
+                    count_8 += 1
+                if i > 0.5:
+                    count_5 += 1
+            self.metrics["neg_class_confidence_0.8"].append(count_8)
+            self.metrics["neg_class_confidence_0.5"].append(count_5)
+            self.metrics["neg_class_confidence_median"].append(np.median(tmp_prob))
+
+
 
 
         #TODO move whatever labeled left to archive when quitting
 
         #--CSV = metrics to csv conversion
         df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
-        df.to_csv(parameters["test"]["metric_csv_path"])
+        df.to_csv(parameters["test"]["metric_csv_path"], mode='a', header=not os.path.exists(parameters["test"]["metric_csv_path"]))
 
         # iteration= 0
         # newly_labled_path = parameters['nn']['labeled_path']

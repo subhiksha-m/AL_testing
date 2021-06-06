@@ -109,9 +109,9 @@ class ActiveLabeler():
                 predictions = model(x)
                 unlabled_probablites.extend(predictions.detach().cpu().numpy())
         positive_predictions = np.array([unlabled_probablites[i][1] for i in range(len(unlabled_probablites))])
-        count = 0
-        for i in positive_predictions:
-            if i > prob:
-                count += 1 #TODO count , median
+        # count = 0
+        # for i in positive_predictions:
+        #     if i > prob:
+        #         count += 1 #TODO count , median
         #median positive_predictions np.median(pos_predic)
         return positive_predictions
