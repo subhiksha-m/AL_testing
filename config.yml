@@ -42,4 +42,8 @@ AL_main:
   n_closest:          10
   al_folder:          /content/runtime/AL
 
+Continuation:
+ nn: 0
+ seed_data_path: /content/seed_dataset
+
 

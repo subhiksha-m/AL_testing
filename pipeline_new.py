@@ -355,12 +355,20 @@ class Pipeline:
                                    list(paths.list_images(parameters['data']['data_path'])), parameters['annoy']['num_nodes'],
                                    parameters['annoy']['num_trees'], parameters['annoy']['annoy_path'])
 
-        logging.info('create_seed_dataset')
         self.dataset_paths = list(paths.list_images(parameters['data']['data_path']))
         self.unlabeled_list = [i.split('/')[-1] for i in self.dataset_paths]
-        self.labled_list = []
-        self.create_seed_dataset(parameters['nn']['ref_img_path'],parameters['data']['data_path'],parameters['nn']['swipe_url'],parameters['nn']['simulate_label'],parameters['annoy']['num_nodes'],parameters['annoy']['annoy_path'] ,model,
-                                 parameters['nn']['unlabled_path'],parameters['nn']['labeled_path'],parameters['nn']['positive_path'],parameters['nn']['negative_path'],parameters['nn']['unsure_path'],self.class_name)
+        if  parameters['annoy']['annoy_path']==1:
+            logging.info('create_seed_dataset')
+            self.labled_list = []
+            self.create_seed_dataset(parameters['nn']['ref_img_path'],parameters['data']['data_path'],parameters['nn']['swipe_url'],parameters['nn']['simulate_label'],parameters['annoy']['num_nodes'],parameters['annoy']['annoy_path'] ,model,
+                                     parameters['nn']['unlabled_path'],parameters['nn']['labeled_path'],parameters['nn']['positive_path'],parameters['nn']['negative_path'],parameters['nn']['unsure_path'],self.class_name)
+            newly_labled_path = parameters['nn']['labeled_path']
+
+        else:
+            self.labled_list = [i.split('/')[-1] for i in list(paths.list_images(parameters['Continuation']['seed_data_path']))]
+            for i in self.labled_list:
+                self.unlabeled_list.remove(i)
+            newly_labled_path =  parameters['Continuation']['seed_data_path']
 
         os.chdir(parameters['AL_main']['al_folder'])
         logging.info('active_labeling')
@@ -502,7 +510,7 @@ class Pipeline:
             self.metrics["class"].append(self.class_name)
             self.metrics["model_type"].append(input_counter)
             self.test_data(train_models.get_model(),parameters["test"]["test_path"],t)
-            tmp_prob= activelabeler.get_probablities(parameters["test"]["evaluation_path"]+"/posititve",train_models.get_model(),0.8,parameters['model']['image_size'])
+            tmp_prob= activelabeler.get_probablities(parameters["test"]["evaluation_path"]+"/positive",train_models.get_model(),0.8,parameters['model']['image_size'])
             count_8 = 0
             count_5 = 0
             for i in tmp_prob:
