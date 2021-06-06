@@ -106,7 +106,10 @@ class ActiveLabeler():
             loader = DataLoader(dataset, batch_size=bs, shuffle=False)
             for batch in tqdm(loader):
                 x = batch[0].cuda()
-                predictions = model(x)
+                #predictions = model(x)
+                feats = model.encoder(x)[-1]
+                feats = feats.view(feats.size(0), -1)
+                predictions = model.linear_model(feats)
                 unlabled_probablites.extend(predictions.detach().cpu().numpy())
         positive_predictions = np.array([unlabled_probablites[i][1] for i in range(len(unlabled_probablites))])
         # count = 0

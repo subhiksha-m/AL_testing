@@ -192,7 +192,7 @@ class Pipeline:
         if simulate_label: # TODO
             for img in list(paths.list_images(unlabled_path)):
                 src = unlabled_path + "/" + img.split('/')[-1]
-                dest = (positive_path + "/" + img.split('/')[-1]) if class_name in img else (
+                dest = (positive_path + "/" + img.split('/')[-1]) if self.class_name in img else (
                         negative_path + "/" + img.split('/')[-1])
                 shutil.move(src, dest)
 
@@ -319,7 +319,7 @@ class Pipeline:
                 feats = feats.view(feats.size(0), -1)
                 output = model.linear_model(feats)
                 inds = torch.argmax(output, dim=1)
-                op.append(inds)
+                op.append(inds.item())
                 gt.append(y.item())
             prec = precision_score(gt, op)
             rec = recall_score(gt, op)
@@ -357,7 +357,7 @@ class Pipeline:
 
         self.dataset_paths = list(paths.list_images(parameters['data']['data_path']))
         self.unlabeled_list = [i.split('/')[-1] for i in self.dataset_paths]
-        if  parameters['annoy']['annoy_path']==1:
+        if  parameters['Continuation']['nn']==1:
             logging.info('create_seed_dataset')
             self.labled_list = []
             self.create_seed_dataset(parameters['nn']['ref_img_path'],parameters['data']['data_path'],parameters['nn']['swipe_url'],parameters['nn']['simulate_label'],parameters['annoy']['num_nodes'],parameters['annoy']['annoy_path'] ,model,
@@ -393,7 +393,7 @@ class Pipeline:
 
         iteration = 0
         model_type = "model"
-        newly_labled_path = parameters['nn']['labeled_path']  #seed dataset
+        #newly_labled_path = parameters['nn']['labeled_path']  #seed dataset
         while True:
             iteration += 1
             print(f"iteration {iteration}")
