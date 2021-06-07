@@ -533,13 +533,18 @@ class Pipeline:
             #train_models.get_model().train_encoder=False
             # train_models.get_model().freeze_encoder()
             # print(strategy_images)
-            imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),
-                                       parameters['annoy']['num_nodes'], parameters['annoy']['annoy_path'],
-                                       None, curr_model,model_type) #TODO inference model this works
-            # tmp1 = set(strategy_images)
-            tmp2 = set(imgs)
-            tmp2.update(strategy_images)
-            imgs = list(tmp2)
+            if parameters['AL_main']['nn']==1:
+
+                imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),
+                                           parameters['annoy']['num_nodes'], parameters['annoy']['annoy_path'],
+                                           None, curr_model,model_type) #TODO inference model this works
+                # tmp1 = set(strategy_images)
+                tmp2 = set(imgs)
+                tmp2.update(strategy_images)
+                imgs = list(tmp2)
+
+            else:
+                imgs = strategy_images
 
             self.label_data(imgs, parameters['data']['data_path'], parameters['nn']['swipe_url'],
                             parameters['nn']['simulate_label'],
