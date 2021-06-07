@@ -325,6 +325,8 @@ class Pipeline:
                 feats = feats.view(feats.size(0), -1)
                 output = model.linear_model(feats)
                 inds = torch.argmax(output, dim=1)
+                print(output[0:5])
+                print(inds[0:5])
                 op.append(inds.item())
                 gt.append(y.item())
             prec = precision_score(gt, op)
@@ -532,7 +534,7 @@ class Pipeline:
                 train_models.get_model(),parameters['ActiveLabeler']['sampling_strategy'] , parameters['ActiveLabeler']['sample_size'], None, "cuda")
             #train_models.get_model().train_encoder=False
             # train_models.get_model().freeze_encoder()
-            # print(strategy_images)
+            print(strategy_images)
             if parameters['AL_main']['nn']==1:
 
                 imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),
