@@ -467,7 +467,7 @@ class Pipeline:
                 tic = time.perf_counter()
                 train_models.train_linear(training_dataset, validation_dataset)
                 toc = time.perf_counter()
-                self.metrics["train_time"].append((tic - toc)//60)
+                self.metrics["train_time"].append((toc - tic)//60)
                 # {self.model_path}AL_0
                 # strategy_embeddings, strategy_images = activelabeler.get_images_to_label_offline(
                 #     train_models.get_model(), "uncertainty", parameters['ActiveLabeler']['sample_size'], None, "cuda")
@@ -503,7 +503,7 @@ class Pipeline:
                 toc = time.perf_counter()
                 train_models.train_all(training_dataset, validation_dataset)
                 toc = time.perf_counter()
-                self.metrics["train_time"].append((tic - toc)//60)
+                self.metrics["train_time"].append((toc - tic)//60)
                 #change generate emb again => using encoder from model from train_all
                 # emb from unlabeled pool => need to update AL with new emb ??
                 # x = torchvision.datasets.ImageFolder(parameters['AL_main']['archive_path'], t)
