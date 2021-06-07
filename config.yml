@@ -1,6 +1,6 @@
 model:
   model_type:       simclr
-  model_path:       /content/SIMCLR_ssl_resnet18_pretrained_full.ckpt
+  model_path:       /content/SIMCLR_resnet18_resisc6.ckpt
   image_size:       256
   embedding_size:   512
 
@@ -33,13 +33,14 @@ TrainModels:
   config_path:      /content/AL_testing/ActiveLabeler-main/ActiveLabelerModels/config.yaml
 
 ActiveLabeler:
-  sample_size:      10
+  sample_size:      30
   sampling_strategy: "uncertainty" # "random"
 
 AL_main:
   newly_labled_path:  /content/new_label
   archive_path:       /content/runtime/swipe/archive
-  n_closest:          10
+  nn:                 1
+  n_closest:          3
   al_folder:          /content/runtime/AL
 
 Continuation:
