@@ -413,30 +413,41 @@ class Pipeline:
                 emb_dataset = self.create_emb_label_mapping(newly_labled_path + '/positive/',
                                                             newly_labled_path + '/negative/')
 
+                # if iteration==1:
+                #     emb_dataset_archive = self.create_emb_label_mapping(
+                #         parameters['nn']['labeled_path'] + "/positive",
+                #         None)
+                #     emb_dataset_archive_r_p = random.sample(emb_dataset_archive,
+                #                                           min(len(emb_dataset) // 9, len(emb_dataset_archive)))
+                #     emb_dataset_archive = self.create_emb_label_mapping(
+                #         None,
+                #         parameters['nn']['labeled_path'] + "/negative")
+                #     emb_dataset_archive_r_n = random.sample(emb_dataset_archive,
+                #                                           min(len(emb_dataset) // 9, len(emb_dataset_archive)))
+                #
+                # else:
+                #     emb_dataset_archive = self.create_emb_label_mapping(parameters['AL_main']['archive_path'] + "/positive",None)
+                #     emb_dataset_archive_r_p =  random.sample(emb_dataset_archive, min(len(emb_dataset)//9,len(emb_dataset_archive)))
+                #     emb_dataset_archive = self.create_emb_label_mapping(
+                #         None,
+                #         parameters['AL_main']['archive_path'] + "/negative")
+                #     emb_dataset_archive_r_n = random.sample(emb_dataset_archive,
+                #                                           min(len(emb_dataset) // 9, len(emb_dataset_archive)))
+                #
+                # for i in emb_dataset_archive_r_n:
+                #     emb_dataset.append(i)
+                # for i in emb_dataset_archive_r_p:
+                #     emb_dataset.append(i)
+
                 if iteration==1:
                     emb_dataset_archive = self.create_emb_label_mapping(
                         parameters['nn']['labeled_path'] + "/positive",
-                        None)
-                    emb_dataset_archive_r_p = random.sample(emb_dataset_archive,
-                                                          min(len(emb_dataset) // 9, len(emb_dataset_archive)))
-                    emb_dataset_archive = self.create_emb_label_mapping(
-                        None,
                         parameters['nn']['labeled_path'] + "/negative")
-                    emb_dataset_archive_r_n = random.sample(emb_dataset_archive,
-                                                          min(len(emb_dataset) // 9, len(emb_dataset_archive)))
 
                 else:
-                    emb_dataset_archive = self.create_emb_label_mapping(parameters['AL_main']['archive_path'] + "/positive",None)
-                    emb_dataset_archive_r_p =  random.sample(emb_dataset_archive, min(len(emb_dataset)//9,len(emb_dataset_archive)))
-                    emb_dataset_archive = self.create_emb_label_mapping(
-                        None,
-                        parameters['AL_main']['archive_path'] + "/negative")
-                    emb_dataset_archive_r_n = random.sample(emb_dataset_archive,
-                                                          min(len(emb_dataset) // 9, len(emb_dataset_archive)))
+                    emb_dataset_archive = self.create_emb_label_mapping(parameters['AL_main']['archive_path'] + "/positive", parameters['AL_main']['archive_path'] + "/negative")
 
-                for i in emb_dataset_archive_r_n:
-                    emb_dataset.append(i)
-                for i in emb_dataset_archive_r_p:
+                for i in emb_dataset_archive:
                     emb_dataset.append(i)
 
                 #"train_ratio": [], "pos_train_img": [], "neg_train_imgs": []}
@@ -521,7 +532,7 @@ class Pipeline:
                 train_models.get_model(),parameters['ActiveLabeler']['sampling_strategy'] , parameters['ActiveLabeler']['sample_size'], None, "cuda")
             #train_models.get_model().train_encoder=False
             # train_models.get_model().freeze_encoder()
-            print(strategy_images)
+            # print(strategy_images)
             imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),
                                        parameters['annoy']['num_nodes'], parameters['annoy']['annoy_path'],
                                        None, curr_model,model_type) #TODO inference model this works
