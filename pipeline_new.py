@@ -358,7 +358,7 @@ class Pipeline:
 
         logging.info('initialize_embeddings')
         self.initialize_emb_counter +=1 #TODO use _0 and then iteration number for later
-        parameters['annoy']['annoy_path'] = parameters['annoy']['annoy_path'] + f"{self.initialize_emb_counter}"
+        parameters['annoy']['annoy_path'] = parameters['annoy']['annoy_path'] + f"{self.initialize_emb_counter}" + ".ann"
         self.initialize_embeddings(parameters['model']['image_size'], parameters['model']['embedding_size'], model,
                                    list(paths.list_images(parameters['data']['data_path'])), parameters['annoy']['num_nodes'],
                                    parameters['annoy']['num_trees'], parameters['annoy']['annoy_path'])
@@ -511,22 +511,27 @@ class Pipeline:
                 logging.info('initialize_embeddings')
                 self.initialize_emb_counter += 1
                 parameters['annoy']['annoy_path'] = parameters['annoy'][
-                                                        'annoy_path'] + f"{self.initialize_emb_counter}"
+                                                        'annoy_path'] + f"{self.initialize_emb_counter}" + ".ann"
                 encoder =  train_models.get_model().to("cuda") #TODO device
                 self.dataset_paths = [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ]
                 self.initialize_embeddings(parameters['model']['image_size'], parameters['model']['embedding_size'],
                                            encoder,
-                                           [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ],
+                                           self.dataset_paths,
                                            parameters['annoy']['num_nodes'],
                                            parameters['annoy']['num_trees'], parameters['annoy']['annoy_path'],"encoder")
 
-                #update AL class with new emb
-                mapping =[]
-                for i in range(len(self.unlabeled_list)):
-                    mapping.append(self.embeddings[i])
+                # #update AL class with new emb
+                mapping = self.create_emb_mapping(self.unlabeled_list)
                 activelabeler.get_embeddings_offline(mapping,
-                                                 [parameters['data']['data_path'] + "/Unlabeled/" + image_name for
-                                                  image_name in self.unlabeled_list])
+                                                     [parameters['data']['data_path'] + "/Unlabeled/" + image_name for
+                                                      image_name in self.unlabeled_list])
+
+                # mapping =[]
+                # for i in range(len(self.unlabeled_list)):
+                #     mapping.append(self.embeddings[i])
+                # activelabeler.get_embeddings_offline(mapping,
+                #                                  [parameters['data']['data_path'] + "/Unlabeled/" + image_name for
+                #                                   image_name in self.unlabeled_list])
 
             # AL.getimgstolabel => uncertain imgs => nn sampling_strategy
             curr_model = model if model_type =="model" else encoder
@@ -564,12 +569,12 @@ class Pipeline:
             print(f"Total Images: {tmp1} + {tmp2} = {tmp1+tmp2} positive || {tmp3} + {tmp4} = {tmp3+tmp4} negative")
 
             #update embeddings with unlabeled image embeddings #TODO check initializations
-            mapping = []
-            if model_type=="encoder": #TODO model type doesnt change after every iteration, even after (...=> f => linear) will this work ?
-                for i in range(len(self.unlabeled_list)):
-                    mapping.append(self.embeddings[i])
-            else:
-                mapping = self.create_emb_mapping(self.unlabeled_list)
+            #mapping = []
+            # if model_type=="encoder": #TODO model type doesnt change after every iteration, even after (...=> f => linear) will this work ?
+            #     for i in range(len(self.unlabeled_list)):
+            #         mapping.append(self.embeddings[i])
+            # else:
+            mapping = self.create_emb_mapping(self.unlabeled_list)
             activelabeler.get_embeddings_offline(mapping, [ parameters['data']['data_path'] + "/Unlabeled/" + image_name for image_name in self.unlabeled_list ])
 
             #--TEST
