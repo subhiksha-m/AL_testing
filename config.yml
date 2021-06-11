@@ -26,7 +26,7 @@ nn:
 annoy:
     num_nodes:      512
     num_trees:      50
-    annoy_path:     /content/runtime/NN_local/annoy_file.ann
+    annoy_path:     /content/runtime/NN_local/annoy_file
 
 TrainModels:
   dummy_dataset:    /content/dummy
