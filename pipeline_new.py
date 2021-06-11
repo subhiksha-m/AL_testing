@@ -543,8 +543,10 @@ class Pipeline:
                 print("nn imgs ", imgs)
                 # tmp1 = set(strategy_images)
                 tmp2 = set(imgs)
+                print("len nn", len(tmp2))
                 tmp2.update(strategy_images)
                 imgs = list(tmp2)
+                print("len nn + strategy imgs", len(tmp2))
 
             else:
                 imgs = strategy_images
