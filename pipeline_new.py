@@ -534,12 +534,13 @@ class Pipeline:
                 train_models.get_model(),parameters['ActiveLabeler']['sampling_strategy'] , parameters['ActiveLabeler']['sample_size'], None, "cuda")
             #train_models.get_model().train_encoder=False
             # train_models.get_model().freeze_encoder()
-            print(strategy_images)
+            #print(strategy_images)
             if parameters['AL_main']['nn']==1:
 
                 imgs = self.search_similar(strategy_images, int(parameters['AL_main']['n_closest']),
                                            parameters['annoy']['num_nodes'], parameters['annoy']['annoy_path'],
                                            None, curr_model,model_type) #TODO inference model this works
+                print("nn imgs ", imgs)
                 # tmp1 = set(strategy_images)
                 tmp2 = set(imgs)
                 tmp2.update(strategy_images)
@@ -554,9 +555,15 @@ class Pipeline:
                             parameters['AL_main']['newly_labled_path'] + "/positive",
                             parameters['AL_main']['newly_labled_path'] + "/negative", None,self.class_name)
 
+            tmp1 = len(list(paths.list_images(parameters['AL_main']['archive_path'] + "/positive")))
+            tmp2 = len(list(paths.list_images(newly_labled_path + "/positive")))
+            tmp3 = len(list(paths.list_images(parameters['AL_main']['archive_path'] + "/negative")))
+            tmp4 = len(list(paths.list_images(newly_labled_path + "/negative")))
+            print(f"Total Images: {tmp1} + {tmp2} = {tmp1+tmp2} positive || {tmp3} + {tmp4} = {tmp3+tmp4} negative")
+
             #update embeddings with unlabeled image embeddings #TODO check initializations
             mapping = []
-            if model_type=="encoder":
+            if model_type=="encoder": #TODO model type doesnt change after every iteration, even after (...=> f => linear) will this work ?
                 for i in range(len(self.unlabeled_list)):
                     mapping.append(self.embeddings[i])
             else:

@@ -32,6 +32,7 @@ class ActiveLabeler():
         :returns list/numpy array of the index of images in the sebset. 
         """
         if name == 'uncertainty':
+            print("std dev",query.std(axis=1)[np.argsort(query.std(axis=1))])
             return np.argsort(query.std(axis = 1))[:N]
         elif name == 'random':
             return [random.randrange(0, len(query), 1) for i in range(N)]
@@ -76,6 +77,8 @@ class ActiveLabeler():
         #Stuff to return
         strategy_embeddings = np.array([i for i in dataset])[subset]
         strategy_images = np.array([i for i in image_paths])[subset]
+        print("model pred", model_predictions)
+        print("strategy_images", strategy_images)
 
         return strategy_embeddings, strategy_images
 
