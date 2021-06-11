@@ -106,6 +106,7 @@ class Pipeline:
     def get_nn_annoy(self, image_path, n_closest, num_nodes, annoy_path, data_path,model, model_type,disp=False):
         # load dependencies
         u = AnnoyIndex(num_nodes, 'euclidean')
+        print(annoy_path)
         u.load(annoy_path)
 
         # if emb not passed use inference function and model to generate emb
