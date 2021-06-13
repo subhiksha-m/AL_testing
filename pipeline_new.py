@@ -54,6 +54,7 @@ from torchvision import transforms
 import matplotlib.image as mpimg
 from imutils import paths
 import sys
+from tsne import  TSNE_visualiser
 
 import logging
 
@@ -454,8 +455,8 @@ class Pipeline:
                     emb_dataset.append(i)
 
                 #"train_ratio": [], "pos_train_img": [], "neg_train_imgs": []}
-                tmp_p = len(list(paths.list_images(newly_labled_path + "/positive")))
-                tmp_n = len(list(paths.list_images(newly_labled_path + "/negative")))
+                tmp_p = len(list(paths.list_images(newly_labled_path + "/positive"))) + len(list(paths.list_images(parameters['AL_main']['archive_path'] + "/positive")))
+                tmp_n = len(list(paths.list_images(newly_labled_path + "/negative"))) + len(list(paths.list_images(parameters['AL_main']['archive_path'] + "/negative")))
                 self.metrics["pos_train_img"].append(tmp_p)
                 self.metrics["neg_train_imgs"].append(tmp_n)
                 tmp = tmp_n / tmp_p if tmp_p > 0 else 0
@@ -488,8 +489,8 @@ class Pipeline:
                 # train all = create dataloader on archive dataset & split , train all  , get uncertain
 
                 # "train_ratio": [], "pos_train_img": [], "neg_train_imgs": []}
-                tmp_p = len(list(paths.list_images(parameters['AL_main']['archive_path'] + "/positive")))
-                tmp_n = len(list(paths.list_images(parameters['AL_main']['archive_path'] + "/negative")))
+                tmp_p = len(list(paths.list_images(parameters['AL_main']['archive_path'] + "/positive"))) +  len(list(paths.list_images(newly_labled_path + "/positive")))
+                tmp_n = len(list(paths.list_images(parameters['AL_main']['archive_path'] + "/negative"))) + len(list(paths.list_images(newly_labled_path + "/negative")))
                 self.metrics["pos_train_img"].append(tmp_p)
                 self.metrics["neg_train_imgs"].append(tmp_n)
                 tmp = tmp_n / tmp_p if tmp_p > 0 else 0
@@ -584,6 +585,25 @@ class Pipeline:
             self.metrics["class"].append(self.class_name)
             self.metrics["model_type"].append(input_counter)
             self.test_data(train_models.get_model(),parameters["test"]["test_path"],t)
+
+            #TODO redundant
+            pathlib.Path(parameters["test"]["evaluation_path"]+ "/positive/Unlabeled").mkdir(parents=True, exist_ok=True)
+            pathlib.Path(parameters["test"]["evaluation_path"] + "/negative/Unlabeled").mkdir(parents=True, exist_ok=True)
+
+            for img in self.labled_list:
+                src = "/content/Dataset/Unlabeled" + "/" + img.split('/')[-1]
+                dest = ("/content/Evaluation_Data/positive/Unlabeled"  + "/" + img.split('/')[-1]) if self.class_name in img else (
+                        "/content/Evaluation_Data/negative/Unlabeled"  + "/" + img.split('/')[-1])
+                shutil.copy(src, dest)
+
+            #TSNE #TODO os.path.join
+            embeddings = self.create_emb_mapping(self.labled_list)
+            ims = [parameters["data"]["data_path"] + "/Unlabeled/" + i for i.split('/')[-1] in self.labled_list]
+            tsne = TSNE_visualiser(embeddings, ims)
+            result = tsne.fit_tsne()
+            tsne.tsne_to_grid_plotter_manual(result[:, 0], result[:, 1], tsne.filenames)
+
+
             tmp_prob= activelabeler.get_probablities(parameters["test"]["evaluation_path"]+"/positive",train_models.get_model(),0.8,parameters['model']['image_size'])
             count_8 = 0
             count_5 = 0
@@ -609,7 +629,7 @@ class Pipeline:
             self.metrics["neg_class_confidence_0.5"].append(count_5)
             self.metrics["neg_class_confidence_median"].append(np.median(tmp_prob))
 
-            print(f"iteration {iteration} metrics: {self.metrics}")
+            print(f"iteration {iteration} metrics = {self.metrics}")
 
 
 
@@ -618,6 +638,11 @@ class Pipeline:
 
         #--CSV = metrics to csv conversion
         df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
+        #rounding to 2
+        col_names = ['f1_score', 'precision', 'accuracy', 'recall', 'train_ratio', 'pos_class_confidence_median',
+                     'neg_class_confidence_median']
+        for i in col_names:
+            df[i] = df[i].astype(float).round(2)
         df.to_csv(parameters["test"]["metric_csv_path"], mode='a', header=not os.path.exists(parameters["test"]["metric_csv_path"]))
 
         # iteration= 0
