@@ -649,7 +649,7 @@ class Pipeline:
             self.prediction_prob[iteration]=tmp_prob2
             print(self.prediction_prob)
             df = pd.DataFrame.from_dict(self.prediction_prob, orient='index').transpose()
-            df.to_csv("prob.csv")
+            df.to_csv("./prob.csv")
 
 
             print(f"iteration {iteration} metrics = {self.metrics}")
