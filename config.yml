@@ -40,7 +40,7 @@ AL_main:
   newly_labled_path:  /content/new_label
   archive_path:       /content/runtime/swipe/archive
   nn:                 1
-  n_closest:          3
+  n_closest:          5
   al_folder:          /content/runtime/AL
 
 Continuation:
