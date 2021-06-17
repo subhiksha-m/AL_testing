@@ -607,32 +607,41 @@ class Pipeline:
             tmp_prob= activelabeler.get_probablities(parameters["test"]["evaluation_path"]+"/positive",train_models.get_model(),0.8,parameters['model']['image_size'])
             count_8 = 0
             count_5 = 0
-            for i in tmp_prob:
-                if i > 0.8:
+            tmp_prob2 = []
+            for i in range(len(tmp_prob)):
+                tmp_prob2.append(tmp_prob[i][0])
+                if tmp_prob[i][0] >= 0.8:
                     count_8 += 1
-                if i > 0.5:
+                if tmp_prob[i][0] >= 0.5:
                     count_5 += 1
             self.metrics["pos_class_confidence_0.8"].append(count_8)
             self.metrics["pos_class_confidence_0.5"].append(count_5)
-            self.metrics["pos_class_confidence_median"].append(np.median(tmp_prob))
+            self.metrics["pos_class_confidence_median"].append(np.median(tmp_prob2))
 
             tmp_prob = activelabeler.get_probablities(parameters["test"]["evaluation_path"] + "/negative",
                                                       train_models.get_model(), 0.8, parameters['model']['image_size'])
+
             count_8 = 0
             count_5 = 0
-            for i in tmp_prob:
-                if i > 0.8:
+            tmp_prob3 = []
+            for i in range(len(tmp_prob)):
+                tmp_prob3.append(tmp_prob[i][0])
+                if tmp_prob[i][0] >= 0.8:
                     count_8 += 1
-                if i > 0.5:
+                if tmp_prob[i][0] >= 0.5:
                     count_5 += 1
             self.metrics["neg_class_confidence_0.8"].append(count_8)
             self.metrics["neg_class_confidence_0.5"].append(count_5)
-            self.metrics["neg_class_confidence_median"].append(np.median(tmp_prob))
+            self.metrics["neg_class_confidence_median"].append(np.median(tmp_prob3))
+
+
+            tmp_prob2.extend(tmp_prob3)
+            #TODO add config path
+            tmp_df = pd.DataFrame(tmp_prob2, columns = [f'{iteration}'])
+            tmp_df.to_csv("prob.csv", mode='a',
+                      header=not os.path.exists('prob.csv'))
 
             print(f"iteration {iteration} metrics = {self.metrics}")
-
-
-
 
         #TODO move whatever labeled left to archive when quitting
 
