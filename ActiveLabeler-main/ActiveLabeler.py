@@ -34,7 +34,7 @@ class ActiveLabeler():
         if name == 'uncertainty':
             uncertainty = []
             for i in range(len(query)):
-                if query[i][0] >= 0.35 and query[i][0] <= 0.65:
+                if query[i][0] >= 0.1 and query[i][0] <= 0.9:
                     uncertainty.append(i)
             uncertainty = np.array(uncertainty)
             if len(uncertainty) > N:
