@@ -32,8 +32,15 @@ class ActiveLabeler():
         :returns list/numpy array of the index of images in the sebset. 
         """
         if name == 'uncertainty':
-            print("std dev",query.std(axis=1)[np.argsort(query.std(axis=1))])
-            return np.argsort(query.std(axis = 1))[:N]
+            uncertainty = []
+            for i in range(len(query)):
+                if query[i][0] >= 0.35 and query[i][0] <= 0.65:
+                    uncertainty.append(i)
+            uncertainty = np.array(uncertainty)
+            if len(uncertainty) > N:
+                return uncertainty[:N]
+            else:
+                return uncertainty
         elif name == 'random':
             return [random.randrange(0, len(query), 1) for i in range(N)]
         elif name == 'positive':
@@ -114,10 +121,13 @@ class ActiveLabeler():
                 feats = feats.view(feats.size(0), -1)
                 predictions = model.linear_model(feats)
                 unlabled_probablites.extend(predictions.detach().cpu().numpy())
-        positive_predictions = np.array([unlabled_probablites[i][1] for i in range(len(unlabled_probablites))])
-        # count = 0
-        # for i in positive_predictions:
-        #     if i > prob:
-        #         count += 1 #TODO count , median
-        #median positive_predictions np.median(pos_predic)
-        return positive_predictions
+
+        return unlabled_probablites
+
+        # positive_predictions = np.array([unlabled_probablites[i][1] for i in range(len(unlabled_probablites))])
+        # # count = 0
+        # # for i in positive_predictions:
+        # #     if i > prob:
+        # #         count += 1 #TODO count , median
+        # #median positive_predictions np.median(pos_predic)
+        # return positive_predictions

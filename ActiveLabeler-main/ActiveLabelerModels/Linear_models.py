@@ -30,8 +30,8 @@ class SSLEvaluator(nn.Module):
                 nn.Linear(n_hidden//2, n_hidden//4, bias=True),
                 nn.ReLU(inplace=True),
                 nn.Dropout(p=p),
-                nn.Linear(n_hidden//4, n_classes, bias=True),
-                nn.Softmax(),
+                nn.Linear(n_hidden // 4, 1, bias=True),
+                nn.Sigmoid(),
             )
 
     def forward(self, x):
