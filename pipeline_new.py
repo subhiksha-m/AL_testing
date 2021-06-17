@@ -605,11 +605,11 @@ class Pipeline:
                 shutil.copy(src, dest)
 
             #TSNE #TODO os.path.join
-            embeddings = self.create_emb_mapping(self.labled_list)
-            ims = [parameters["data"]["data_path"] + "/Unlabeled/" + i for i.split('/')[-1] in self.labled_list]
-            tsne = TSNE_visualiser(embeddings, ims)
-            result = tsne.fit_tsne()
-            tsne.tsne_to_grid_plotter_manual(result[:, 0], result[:, 1], tsne.filenames)
+            # embeddings = self.create_emb_mapping(self.labled_list)
+            # ims = [parameters["data"]["data_path"] + "/Unlabeled/" + i for i.split('/')[-1] in self.labled_list]
+            # tsne = TSNE_visualiser(embeddings, ims)
+            # result = tsne.fit_tsne()
+            # tsne.tsne_to_grid_plotter_manual(result[:, 0], result[:, 1], tsne.filenames)
 
 
             tmp_prob= activelabeler.get_probablities(parameters["test"]["evaluation_path"]+"/positive",train_models.get_model(),0.8,parameters['model']['image_size'])
