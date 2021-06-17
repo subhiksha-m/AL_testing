@@ -79,7 +79,9 @@ class ActiveLabeler():
 
         #Strategy
         model_predictions = np.array(model_predictions)
+        print("m_predic",model_predictions)
         subset = self.strategy(sampling_strat, model_predictions, sample_size, strategy_params)
+        print("subset",subset)
 
         #Stuff to return
         strategy_embeddings = np.array([i for i in dataset])[subset]
