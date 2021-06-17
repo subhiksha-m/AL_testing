@@ -86,7 +86,7 @@ class Pipeline:
         self.class_name = class_name
         self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"accuracy":[], "recall":[],"train_ratio":[],"pos_train_img":[],"neg_train_imgs":[], "train_time":[],
                         "pos_class_confidence_0.8":[],"pos_class_confidence_0.5":[],"pos_class_confidence_median":[],"neg_class_confidence_0.8":[],"neg_class_confidence_0.5":[],"neg_class_confidence_median":[] }
-
+        self.prediction_prob ={}
     # similiarity search class
     def get_annoy_tree(self, num_nodes, embeddings, num_trees, annoy_path):
         t = AnnoyIndex(num_nodes, 'euclidean')
@@ -645,9 +645,11 @@ class Pipeline:
 
             tmp_prob2.extend(tmp_prob3)
             #TODO add config path
-            tmp_df = pd.DataFrame(tmp_prob2, columns = [f'{iteration}'])
-            tmp_df.to_csv("prob.csv", mode='a',
-                      header=not os.path.exists('prob.csv'))
+            #tmp_df = pd.DataFrame(tmp_prob2, columns = [f'{iteration}'])
+            self.prediction_prob[iteration]=tmp_prob2
+            df = pd.DataFrame.from_dict(self.prediction_prob, orient='index').transpose()
+            df.to_csv("prob.csv")
+
 
             print(f"iteration {iteration} metrics = {self.metrics}")
 
