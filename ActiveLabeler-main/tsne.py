@@ -11,8 +11,12 @@ import time
 from pathlib import Path
 import sys
 from torchvision import transforms
-from ssl_dali_distrib import SIMCLR
-from finetuner_dali_distrib import finetuner
+sys.path.insert(0, "Self-Supervised-Learner")
+sys.path.insert(0, "ActiveLabelerModels")
+sys.path.insert(0, "ActiveLabeler-main")
+from models import CLASSIFIER
+from models import SIMCLR
+#from finetuner_dali_distrib import finetuner
 import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import classification_report, f1_score, recall_score
@@ -47,44 +51,44 @@ from sklearn.preprocessing import LabelEncoder
 from argparse import ArgumentParser
 
 
-def load_checkpoint(MODEL_PATH):
-    # expects a checkpoint path, not an encoder
-    try:
-        model = finetuner.load_from_checkpoint(MODEL_PATH)
-        is_classifier = True
-    except:
-        model = SIMCLR.load_from_checkpoint(MODEL_PATH)
-        is_classifier = False
-    return model, is_classifier
-
-
-def get_matrix(MODEL_PATH, DATA_PATH):
-    def to_tensor(pil):
-        return torch.tensor(np.array(pil)).permute(2, 0, 1).float()
-
-    t = transforms.Compose([
-        transforms.Resize((48, 48)),
-        transforms.Lambda(to_tensor)
-    ])
-    dataset = ImageFolder(DATA_PATH, transform=t)
-    model, is_classifier = load_checkpoint(MODEL_PATH)
-    model.eval()
-    model.cuda()
-    if is_classifier:
-        size = model.num_classes
-    else:
-        size = model.embedding_size
-    with torch.no_grad():
-        data_matrix = torch.empty(size=(0, size)).cuda()
-        bs = 256
-        if len(dataset) < bs:
-            bs = 1
-        loader = DataLoader(dataset, batch_size=bs, shuffle=False)
-        for batch in tqdm(loader):
-            x = batch[0].cuda()
-            embeddings = model(x)
-            data_matrix = torch.cat([data_matrix, embeddings])
-    return data_matrix.cpu().detach().numpy(), dataset.imgs
+# def load_checkpoint(MODEL_PATH):
+#     # expects a checkpoint path, not an encoder
+#     try:
+#         model = finetuner.load_from_checkpoint(MODEL_PATH)
+#         is_classifier = True
+#     except:
+#         model = SIMCLR.load_from_checkpoint(MODEL_PATH)
+#         is_classifier = False
+#     return model, is_classifier
+#
+#
+# def get_matrix(MODEL_PATH, DATA_PATH):
+#     def to_tensor(pil):
+#         return torch.tensor(np.array(pil)).permute(2, 0, 1).float()
+#
+#     t = transforms.Compose([
+#         transforms.Resize((48, 48)),
+#         transforms.Lambda(to_tensor)
+#     ])
+#     dataset = ImageFolder(DATA_PATH, transform=t)
+#     model, is_classifier = load_checkpoint(MODEL_PATH)
+#     model.eval()
+#     model.cuda()
+#     if is_classifier:
+#         size = model.num_classes
+#     else:
+#         size = model.embedding_size
+#     with torch.no_grad():
+#         data_matrix = torch.empty(size=(0, size)).cuda()
+#         bs = 256
+#         if len(dataset) < bs:
+#             bs = 1
+#         loader = DataLoader(dataset, batch_size=bs, shuffle=False)
+#         for batch in tqdm(loader):
+#             x = batch[0].cuda()
+#             embeddings = model(x)
+#             data_matrix = torch.cat([data_matrix, embeddings])
+#     return data_matrix.cpu().detach().numpy(), dataset.imgs
 
 
 class TSNE_visualiser:
