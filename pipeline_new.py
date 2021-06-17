@@ -647,6 +647,7 @@ class Pipeline:
             #TODO add config path
             #tmp_df = pd.DataFrame(tmp_prob2, columns = [f'{iteration}'])
             self.prediction_prob[iteration]=tmp_prob2
+            print(self.prediction_prob)
             df = pd.DataFrame.from_dict(self.prediction_prob, orient='index').transpose()
             df.to_csv("prob.csv")
 
