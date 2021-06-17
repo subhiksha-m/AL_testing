@@ -86,7 +86,7 @@ class ActiveLabeler():
         #Stuff to return
         strategy_embeddings = np.array([i for i in dataset])[subset]
         strategy_images = np.array([i for i in image_paths])[subset]
-        print("model pred", model_predictions)
+        # print("model pred", model_predictions)
         print("strategy_images", strategy_images)
 
         return strategy_embeddings, strategy_images
