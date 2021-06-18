@@ -32,15 +32,21 @@ class ActiveLabeler():
         :returns list/numpy array of the index of images in the sebset. 
         """
         if name == 'uncertainty':
-            uncertainty = []
-            for i in range(len(query)):
-                if query[i][0] >= 0.1 and query[i][0] <= 0.9:
-                    uncertainty.append(i)
-            uncertainty = np.array(uncertainty)
-            if len(uncertainty) > N:
-                return uncertainty[:N]
-            else:
-                return uncertainty
+            tmp_query = [query[i][0] for i in range(len(query))]
+            difference_array = np.absolute(tmp_query - 0.5 )
+            #print(difference_array.argsort()[:N])
+            #uncertainty = [query[i][0] for i in index]
+            return difference_array.argsort()[:N]
+
+            # uncertainty = []
+            # for i in range(len(query)):
+            #     if query[i][0] >= 0.1 and query[i][0] <= 0.9:
+            #         uncertainty.append(i)
+            # uncertainty = np.array(uncertainty)
+            # if len(uncertainty) > N:
+            #     return uncertainty[:N]
+            # else:
+            #     return uncertainty
         elif name == 'random':
             return [random.randrange(0, len(query), 1) for i in range(N)]
         elif name == 'positive':
