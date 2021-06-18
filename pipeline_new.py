@@ -653,17 +653,24 @@ class Pipeline:
 
 
             print(f"iteration {iteration} metrics = {self.metrics}")
+            df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
+            # rounding to 2
+            col_names = ['f1_score', 'precision', 'accuracy', 'recall', 'train_ratio', 'pos_class_confidence_median',
+                         'neg_class_confidence_median']
+            for i in col_names:
+                df[i] = df[i].astype(float).round(2)
+            df.to_csv(parameters["test"]["metric_csv_path"])
 
         #TODO move whatever labeled left to archive when quitting
 
         #--CSV = metrics to csv conversion
-        df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
-        #rounding to 2
-        col_names = ['f1_score', 'precision', 'accuracy', 'recall', 'train_ratio', 'pos_class_confidence_median',
-                     'neg_class_confidence_median']
-        for i in col_names:
-            df[i] = df[i].astype(float).round(2)
-        df.to_csv(parameters["test"]["metric_csv_path"], mode='a', header=not os.path.exists(parameters["test"]["metric_csv_path"]))
+        # df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
+        # #rounding to 2
+        # col_names = ['f1_score', 'precision', 'accuracy', 'recall', 'train_ratio', 'pos_class_confidence_median',
+        #              'neg_class_confidence_median']
+        # for i in col_names:
+        #     df[i] = df[i].astype(float).round(2)
+        # df.to_csv(parameters["test"]["metric_csv_path"], mode='a', header=not os.path.exists(parameters["test"]["metric_csv_path"]))
 
         # iteration= 0
         # newly_labled_path = parameters['nn']['labeled_path']
