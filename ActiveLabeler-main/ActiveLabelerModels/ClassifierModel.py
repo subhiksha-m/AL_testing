@@ -112,7 +112,10 @@ class ClassifierModel(pl.LightningModule): #SSLFineTuner
         return loss
 
     def loss_fn(self, logits, labels):
-        labels = torch.unsqueeze(labels, 1)
-        labels = labels.type(torch.cuda.FloatTensor)
-        #return F.binary_cross_entropy(logits, labels, weight = self.weights)
-        return F.binary_cross_entropy(logits, labels, pos_weight = self.weights)
+
+        return F.cross_entropy(logits, labels, weight=self.weights)
+
+        # labels = torch.unsqueeze(labels, 1)
+        # labels = labels.type(torch.cuda.FloatTensor)
+        # #return F.binary_cross_entropy(logits, labels, weight = self.weights)
+        # return F.binary_cross_entropy(logits, labels, pos_weight = self.weights)
