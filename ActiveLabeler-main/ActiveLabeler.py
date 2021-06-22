@@ -101,7 +101,7 @@ class ActiveLabeler():
 
         return strategy_embeddings, strategy_images
 
-    def get_probablities(self, DATA_PATH, model, prob,image_size):
+    def get_probablities(self, DATA_PATH, model, prob,image_size,paths=False):
 
         #model = CLASSIFIER.CLASSIFIER.load_from_checkpoint(MODEL_PATH)
         #pass as data_path
@@ -121,6 +121,7 @@ class ActiveLabeler():
             transforms.Lambda(to_tensor)
         ])
         dataset = ImageFolder(DATA_PATH, transform=t)
+        img_paths = [i[0] for i in dataset.imgs]
         with torch.no_grad():
             bs = 128
             if len(dataset) < bs:
@@ -133,7 +134,8 @@ class ActiveLabeler():
                 feats = feats.view(feats.size(0), -1)
                 predictions = model.linear_model(feats)
                 unlabled_probablites.extend(predictions.detach().cpu().numpy())
-
+        if paths:
+            return img_paths, unlabled_probablites
         return unlabled_probablites
 
         # positive_predictions = np.array([unlabled_probablites[i][1] for i in range(len(unlabled_probablites))])
