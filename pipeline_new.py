@@ -594,8 +594,8 @@ class Pipeline:
             tmp4 = len(list(paths.list_images(newly_labled_path + "/negative")))
             print(f"Total Images: {tmp1} + {tmp2} = {tmp1+tmp2} positive || {tmp3} + {tmp4} = {tmp3+tmp4} negative")
 
-            self.metrics['labled_pos']= tmp2
-            self.metrics['labled_neg'] = tmp4
+            self.metrics['labled_pos'].append(tmp2)
+            self.metrics['labled_neg'].append(tmp4)
 
             #update embeddings with unlabeled image embeddings #TODO check initializations
             #mapping = []
