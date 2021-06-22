@@ -596,6 +596,8 @@ class Pipeline:
             self.test_data(train_models.get_model(),parameters["test"]["test_path"],t)
 
             #TODO redundant
+            if os.path.exists(parameters["test"]["evaluation_path"]):
+                shutil.rmtree(parameters["test"]["evaluation_path"])
             pathlib.Path(parameters["test"]["evaluation_path"]+ "/positive/Unlabeled").mkdir(parents=True, exist_ok=True)
             pathlib.Path(parameters["test"]["evaluation_path"] + "/negative/Unlabeled").mkdir(parents=True, exist_ok=True)
 
@@ -667,6 +669,7 @@ class Pipeline:
         #final forward pass on whole dataset
         tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
                                                   train_models.get_model(), 0.8, parameters['model']['image_size'])
+        print("final prob",tmp_prob)
         count_8 = 0
         count_5 = 0
         tmp_prob2 = []
@@ -683,7 +686,7 @@ class Pipeline:
         tmp_metrics["class_confidence_0.5"].append(count_5)
         tmp_metrics["class_confidence_median"].append(np.median(tmp_prob2))
         tmp,tmp2 = 0,0
-        for img in list(paths.list_images(parameters["test"]["evaluation_path"] + "/positive")):
+        for img in list(paths.list_images(parameters["data"]["data_path"])):
             if self.class_name in img:
                 tmp +=1
             else:
