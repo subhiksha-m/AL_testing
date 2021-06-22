@@ -667,7 +667,7 @@ class Pipeline:
 
             #--- forward pass on whole dataset
             imgs, tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
-                                                      train_models.get_model(), 0.8, parameters['model']['image_size'])
+                                                      train_models.get_model(), 0.8, parameters['model']['image_size'],paths=True)
             # print("final prob", tmp_prob)
             count_8 = 0
             count_5 = 0
