@@ -609,7 +609,7 @@ class Pipeline:
             pathlib.Path(parameters["test"]["evaluation_path"]+ "/positive/Unlabeled").mkdir(parents=True, exist_ok=True)
             pathlib.Path(parameters["test"]["evaluation_path"] + "/negative/Unlabeled").mkdir(parents=True, exist_ok=True)
 
-            for img in self.labled_list:
+            for img in self.unlabeled_list:
                 src = "/content/Dataset/Unlabeled" + "/" + img.split('/')[-1]
                 dest = ("/content/Evaluation_Data/positive/Unlabeled"  + "/" + img.split('/')[-1]) if self.class_name in img else (
                         "/content/Evaluation_Data/negative/Unlabeled"  + "/" + img.split('/')[-1])
@@ -662,7 +662,7 @@ class Pipeline:
             self.prediction_prob[iteration]=tmp_prob2
             print("prediciton_prob",self.prediction_prob)
             df = pd.DataFrame.from_dict(self.prediction_prob, orient='index').transpose()
-            df.to_csv("/content/prob.csv")
+            df.to_csv(parameters["test"]["prob_csv_path"])
 
             #--- forward pass on whole dataset
             tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
