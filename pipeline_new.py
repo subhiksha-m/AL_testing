@@ -93,9 +93,8 @@ class Pipeline:
         #                 "neg_class_confidence_0.5": [], "neg_class_confidence_median": [],
         #                 "class_confidence_0.8": [], "class_confidence_0.5": [],
         #                 "class_confidence_median": [], "actual_pos_imgs_0.8": [], "actual_pos_imgs_0.5": []}
-        self.metrics = {"class": [], "step": [], "model_type": [],"labled_pos": [],"labled_neg": [], "f1_score": [], "precision": [], "accuracy": [],
-                        "recall": [], "train_ratio": [], "pos_train_img": [], "neg_train_imgs": [], "train_time": [],
-                        "pos_class_confidence_0.8": [], "pos_class_confidence_0.5": [],
+        self.metrics = {"class": [], "step": [], "model_type": [],"train_ratio": [], "pos_train_img": [], "neg_train_imgs": [], "train_time": [],"labled_pos": [],"labled_neg": [], "f1_score": [], "precision": [], "accuracy": [],
+                        "recall": [], "pos_class_confidence_0.8": [], "pos_class_confidence_0.5": [],
                         "pos_class_confidence_median": [], "neg_class_confidence_0.8": [],
                         "neg_class_confidence_0.5": [], "neg_class_confidence_median": [],
                         "actual_pos_imgs_0.8": [], "actual_pos_imgs_0.5": []}
