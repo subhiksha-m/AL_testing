@@ -85,7 +85,7 @@ class Pipeline:
         self.initialize_emb_counter =0
         self.class_name = class_name
         self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"accuracy":[], "recall":[],"train_ratio":[],"pos_train_img":[],"neg_train_imgs":[], "train_time":[],
-                        "pos_class_confidence_0.8":[],"pos_class_confidence_0.5":[],"pos_class_confidence_median":[],"neg_class_confidence_0.8":[],"neg_class_confidence_0.5":[],"neg_class_confidence_median":[] }
+                        "actual_pos_imgs":[],"pos_class_confidence_0.8":[],"pos_class_confidence_0.5":[],"pos_class_confidence_median":[],"actual_neg_imgs":[],"neg_class_confidence_0.8":[],"neg_class_confidence_0.5":[],"neg_class_confidence_median":[] }
         self.prediction_prob ={}
     # similiarity search class
     def get_annoy_tree(self, num_nodes, embeddings, num_trees, annoy_path):
@@ -353,6 +353,7 @@ class Pipeline:
 
 
 
+    @property
     def main(self):
         # offline
         # TODO printing and logging
@@ -510,7 +511,7 @@ class Pipeline:
                 training_dataset, validation_dataset = torch.utils.data.random_split(archive_dataset, [n_80, n_20])
                 training_dataset = DataLoader(training_dataset, batch_size=32)
                 validation_dataset = DataLoader(validation_dataset, batch_size=1)
-                toc = time.perf_counter()
+                tic = time.perf_counter()
                 train_models.train_all(training_dataset, validation_dataset)
                 toc = time.perf_counter()
                 self.metrics["train_time"].append((toc - tic)//60)
@@ -625,6 +626,8 @@ class Pipeline:
             self.metrics["pos_class_confidence_0.8"].append(count_8)
             self.metrics["pos_class_confidence_0.5"].append(count_5)
             self.metrics["pos_class_confidence_median"].append(np.median(tmp_prob2))
+            #will be unlabled pos imgs
+            self.metrics["actual_pos_imgs"].append((len(list(paths.list_images(parameters["test"]["evaluation_path"]+"/positive"))))
 
             tmp_prob = activelabeler.get_probablities(parameters["test"]["evaluation_path"] + "/negative",
                                                       train_models.get_model(), 0.8, parameters['model']['image_size'])
@@ -641,7 +644,8 @@ class Pipeline:
             self.metrics["neg_class_confidence_0.8"].append(count_8)
             self.metrics["neg_class_confidence_0.5"].append(count_5)
             self.metrics["neg_class_confidence_median"].append(np.median(tmp_prob3))
-
+            self.metrics["actual_neg_imgs"].append(
+                (len(list(paths.list_images(parameters["test"]["evaluation_path"] + "/negative"))))
 
             tmp_prob2.extend(tmp_prob3)
             #TODO add config path
@@ -661,7 +665,36 @@ class Pipeline:
                 df[i] = df[i].astype(float).round(2)
             df.to_csv(parameters["test"]["metric_csv_path"])
 
-        #TODO move whatever labeled left to archive when quitting
+        #final forward pass on whole dataset
+        tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
+                                                  train_models.get_model(), 0.8, parameters['model']['image_size'])
+        count_8 = 0
+        count_5 = 0
+        tmp_prob2 = []
+        for i in range(len(tmp_prob)):
+            tmp_prob2.append(tmp_prob[i][0])
+        if tmp_prob[i][0] >= 0.8:
+            count_8 += 1
+        if tmp_prob[i][0] >= 0.5:
+            count_5 += 1
+        tmp_metrics ={  "class_confidence_0.8": [], "class_confidence_0.5": [],
+                        "class_confidence_median": [], "actual_pos_imgs": [],"actual_neg_imgs": []}
+
+        tmp_metrics["class_confidence_0.8"].append(count_8)
+        tmp_metrics["class_confidence_0.5"].append(count_5)
+        tmp_metrics["class_confidence_median"].append(np.median(tmp_prob2))
+        tmp,tmp2 = 0,0
+        for img in list(paths.list_images(parameters["test"]["evaluation_path"] + "/positive")):
+            if self.class_name in img:
+                tmp +=1
+            else:
+                tmp2 +=1
+        tmp_metrics["actual_pos_imgs"].append(tmp)
+        tmp_metrics["actual_neg_imgs"].append(tmp2)
+
+        print(f"iteration {iteration} final metrics = {tmp_metrics}")
+        df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
+        df.to_csv(parameters["test"]["metric_csv_path"],mode='a')
 
         #--CSV = metrics to csv conversion
         # df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
