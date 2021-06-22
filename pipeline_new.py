@@ -692,7 +692,7 @@ class Pipeline:
         tmp_metrics["actual_neg_imgs"].append(tmp2)
 
         print(f"iteration {iteration} final metrics = {tmp_metrics}")
-        df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
+        df = pd.DataFrame.from_dict(tmp_metrics, orient='index').transpose()
         df.to_csv(parameters["test"]["metric_csv_path"],mode='a')
 
         #--CSV = metrics to csv conversion
