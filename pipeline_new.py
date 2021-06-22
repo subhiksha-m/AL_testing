@@ -627,7 +627,7 @@ class Pipeline:
             self.metrics["pos_class_confidence_0.5"].append(count_5)
             self.metrics["pos_class_confidence_median"].append(np.median(tmp_prob2))
             #will be unlabled pos imgs
-            self.metrics["actual_pos_imgs"].append((len(list(paths.list_images(parameters["test"]["evaluation_path"]+"/positive"))))
+            self.metrics["actual_pos_imgs"].append(len(list(paths.list_images(parameters["test"]["evaluation_path"]+"/positive"))))
 
             tmp_prob = activelabeler.get_probablities(parameters["test"]["evaluation_path"] + "/negative",
                                                       train_models.get_model(), 0.8, parameters['model']['image_size'])
@@ -644,7 +644,7 @@ class Pipeline:
             self.metrics["neg_class_confidence_0.8"].append(count_8)
             self.metrics["neg_class_confidence_0.5"].append(count_5)
             self.metrics["neg_class_confidence_median"].append(np.median(tmp_prob3))
-            self.metrics["actual_neg_imgs"].append(
+            self.metrics["actual_neg_imgs"].append
                 (len(list(paths.list_images(parameters["test"]["evaluation_path"] + "/negative"))))
 
             tmp_prob2.extend(tmp_prob3)
