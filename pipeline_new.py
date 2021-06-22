@@ -666,33 +666,35 @@ class Pipeline:
                 df[i] = df[i].astype(float).round(2)
             df.to_csv(parameters["test"]["metric_csv_path"])
 
-        #final forward pass on whole dataset
+        #---final forward pass on whole dataset
         tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
                                                   train_models.get_model(), 0.8, parameters['model']['image_size'])
         print("final prob",tmp_prob)
         count_8 = 0
         count_5 = 0
         tmp_prob2 = []
+        tmp_pos,tmp_pos2 = 0,0
+        imgs = list(paths.list_images(parameters["data"]["data_path"]))
         for i in range(len(tmp_prob)):
             tmp_prob2.append(tmp_prob[i][0])
-        if tmp_prob[i][0] >= 0.8:
-            count_8 += 1
-        if tmp_prob[i][0] >= 0.5:
-            count_5 += 1
+            if tmp_prob[i][0] >= 0.8:
+                count_8 += 1
+                if(self.class_name in imgs[i]):
+                    tmp_pos +=1
+            if tmp_prob[i][0] >= 0.5:
+                count_5 += 1
+                if (self.class_name in imgs[i]):
+                    tmp_pos2 += 1
         tmp_metrics ={  "class_confidence_0.8": [], "class_confidence_0.5": [],
-                        "class_confidence_median": [], "actual_pos_imgs": [],"actual_neg_imgs": []}
+                        "class_confidence_median": [], "actual_pos_imgs_0.8": [],"actual_pos_imgs_0.5": []}
 
         tmp_metrics["class_confidence_0.8"].append(count_8)
         tmp_metrics["class_confidence_0.5"].append(count_5)
         tmp_metrics["class_confidence_median"].append(np.median(tmp_prob2))
         tmp,tmp2 = 0,0
-        for img in list(paths.list_images(parameters["data"]["data_path"])):
-            if self.class_name in img:
-                tmp +=1
-            else:
-                tmp2 +=1
-        tmp_metrics["actual_pos_imgs"].append(tmp)
-        tmp_metrics["actual_neg_imgs"].append(tmp2)
+        #actual positive imgs = imgs that are actually pos out of the imgs model predicted as positive
+        tmp_metrics["actual_pos_imgs_0.8"].append(tmp_pos)
+        tmp_metrics["actual_pos_imgs_0.5"].append(tmp_pos2)
 
         print(f"iteration {iteration} final metrics = {tmp_metrics}")
         df = pd.DataFrame.from_dict(tmp_metrics, orient='index').transpose()
