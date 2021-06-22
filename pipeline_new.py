@@ -337,7 +337,8 @@ class Pipeline:
                 inds = torch.argmax(output, dim=1)
                 # print(output[0:5])
                 # print(inds[0:5])
-                op.append(output.detach().cpu().numpy())
+                op.append(inds.item())
+                #op.append(output.detach().cpu().numpy())
                 gt.append(y.item())
             # pred = []
             # for i in op:
