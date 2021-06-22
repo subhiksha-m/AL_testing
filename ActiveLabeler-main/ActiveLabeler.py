@@ -34,7 +34,7 @@ class ActiveLabeler():
         if name == 'uncertainty':
             tmp_query = np.array([query[i][0] for i in range(len(query))])
             difference_array = np.absolute(tmp_query - 0.5 )
-            print("index", difference_array.argsort()[:N])
+            #print("index", difference_array.argsort()[:N])
             #uncertainty = [query[i][0] for i in index]
             return difference_array.argsort()[:N]
 
