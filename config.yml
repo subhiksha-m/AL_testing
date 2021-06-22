@@ -1,6 +1,6 @@
 model:
   model_type:       simclr
-  model_path:       /content/SIMCLR_resnet18_resisc6.ckpt
+  model_path:       /content/SIMCLR_ssl_resnet18_pretrained_full.ckpt
   image_size:       256
   embedding_size:   512
 
@@ -9,6 +9,7 @@ data:
 
 test:
   metric_csv_path: /content/metrics.csv
+  prob_csv_path:   /content/prob.csv
   test_path:       /content/TestData
   class:           airplane
   evaluation_path: /content/Evaluation_Data
@@ -39,7 +40,7 @@ ActiveLabeler:
 AL_main:
   newly_labled_path:  /content/new_label
   archive_path:       /content/runtime/swipe/archive
-  nn:                 1
+  nn:                 0
   n_closest:          5
   al_folder:          /content/runtime/AL
 
