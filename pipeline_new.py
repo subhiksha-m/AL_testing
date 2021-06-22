@@ -644,8 +644,7 @@ class Pipeline:
             self.metrics["neg_class_confidence_0.8"].append(count_8)
             self.metrics["neg_class_confidence_0.5"].append(count_5)
             self.metrics["neg_class_confidence_median"].append(np.median(tmp_prob3))
-            self.metrics["actual_neg_imgs"].append
-                (len(list(paths.list_images(parameters["test"]["evaluation_path"] + "/negative"))))
+            self.metrics["actual_neg_imgs"].append(len(list(paths.list_images(parameters["test"]["evaluation_path"] + "/negative"))))
 
             tmp_prob2.extend(tmp_prob3)
             #TODO add config path
