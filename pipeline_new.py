@@ -666,14 +666,14 @@ class Pipeline:
             df.to_csv(parameters["test"]["prob_csv_path"])
 
             #--- forward pass on whole dataset
-            tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
+            imgs, tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
                                                       train_models.get_model(), 0.8, parameters['model']['image_size'])
             # print("final prob", tmp_prob)
             count_8 = 0
             count_5 = 0
             tmp_prob2 = []
             tmp_pos, tmp_pos2 = 0, 0
-            imgs = list(paths.list_images(parameters["data"]["data_path"]))
+            #imgs = list(paths.list_images(parameters["data"]["data_path"]))
             for i in range(len(tmp_prob)):
                 tmp_prob2.append(tmp_prob[i][0])
                 if tmp_prob[i][0] >= 0.8:
