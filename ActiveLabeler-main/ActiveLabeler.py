@@ -33,14 +33,14 @@ class ActiveLabeler():
         """
         if name == 'uncertainty':
 
-            print("std dev", query.std(axis=1)[np.argsort(query.std(axis=1))])
-            return np.argsort(query.std(axis=1))[:N]
+            # print("std dev", query.std(axis=1)[np.argsort(query.std(axis=1))])
+            # return np.argsort(query.std(axis=1))[:N]
 
-            # tmp_query = np.array([query[i][0] for i in range(len(query))])
-            # difference_array = np.absolute(tmp_query - 0.5 )
-            # #print("index", difference_array.argsort()[:N])
-            # #uncertainty = [query[i][0] for i in index]
-            # return difference_array.argsort()[:N]
+            tmp_query = np.array([query[i][0] for i in range(len(query))])
+            difference_array = np.absolute(tmp_query - 0.5 )
+            #print("index", difference_array.argsort()[:N])
+            #uncertainty = [query[i][0] for i in index]
+            return difference_array.argsort()[:N]
 
             # uncertainty = []
             # for i in range(len(query)):
@@ -89,9 +89,9 @@ class ActiveLabeler():
 
         #Strategy
         model_predictions = np.array(model_predictions)
-        print("m_predic",model_predictions)
+        # print("m_predic",model_predictions)
         subset = self.strategy(sampling_strat, model_predictions, sample_size, strategy_params)
-        print("subset",subset)
+        # print("subset",subset)
 
         #Stuff to return
         strategy_embeddings = np.array([i for i in dataset])[subset]

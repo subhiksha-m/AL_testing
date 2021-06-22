@@ -337,17 +337,17 @@ class Pipeline:
                 inds = torch.argmax(output, dim=1)
                 # print(output[0:5])
                 # print(inds[0:5])
-                op.append(inds.item())
-                #op.append(output.detach().cpu().numpy())
+                #op.append(inds.item())
+                op.append(output.detach().cpu().numpy())
                 gt.append(y.item())
-            # pred = []
-            # for i in op:
-            #     if i[0] <= 0.5:
-            #         pred.append(0)
-            #     else:
-            #         pred.append(1)
-            # op = pred
-            print(op)
+            pred = []
+            for i in op:
+                if i[0] <= 0.5:
+                    pred.append(0)
+                else:
+                    pred.append(1)
+            op = pred
+            # print(op)
             prec = precision_score(gt, op)
             rec = recall_score(gt, op)
             f1 = f1_score(gt, op)
@@ -661,14 +661,14 @@ class Pipeline:
             #TODO add config path
             #tmp_df = pd.DataFrame(tmp_prob2, columns = [f'{iteration}'])
             self.prediction_prob[iteration]=tmp_prob2
-            print("prediciton_prob",self.prediction_prob)
+            # print("prediciton_prob",self.prediction_prob)
             df = pd.DataFrame.from_dict(self.prediction_prob, orient='index').transpose()
             df.to_csv(parameters["test"]["prob_csv_path"])
 
             #--- forward pass on whole dataset
             tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
                                                       train_models.get_model(), 0.8, parameters['model']['image_size'])
-            print("final prob", tmp_prob)
+            # print("final prob", tmp_prob)
             count_8 = 0
             count_5 = 0
             tmp_prob2 = []
