@@ -339,13 +339,13 @@ class Pipeline:
                 # print(inds[0:5])
                 op.append(output.detach().cpu().numpy())
                 gt.append(y.item())
-            pred = []
-            for i in op:
-                if i[0] <= 0.5:
-                    pred.append(0)
-                else:
-                    pred.append(1)
-            op = pred
+            # pred = []
+            # for i in op:
+            #     if i[0] <= 0.5:
+            #         pred.append(0)
+            #     else:
+            #         pred.append(1)
+            # op = pred
             print(op)
             prec = precision_score(gt, op)
             rec = recall_score(gt, op)
