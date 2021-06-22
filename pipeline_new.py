@@ -694,7 +694,9 @@ class Pipeline:
         print(f"iteration {iteration} final metrics = {tmp_metrics}")
         df = pd.DataFrame.from_dict(tmp_metrics, orient='index').transpose()
         df.to_csv(parameters["test"]["metric_csv_path"],mode='a')
+        print("done")
 
+        #todo final newlylabled to archive folder
         #--CSV = metrics to csv conversion
         # df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
         # #rounding to 2
