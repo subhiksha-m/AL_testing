@@ -86,15 +86,21 @@ class Pipeline:
         self.class_name = class_name
         # self.metrics = {"class": [],"step": [],"model_type": [], "f1_score":[], "precision":[],"accuracy":[], "recall":[],"train_ratio":[],"pos_train_img":[],"neg_train_imgs":[], "train_time":[],
         #                 "actual_pos_imgs":[],"pos_class_confidence_0.8":[],"pos_class_confidence_0.5":[],"pos_class_confidence_median":[],"actual_neg_imgs":[],"neg_class_confidence_0.8":[],"neg_class_confidence_0.5":[],"neg_class_confidence_median":[] }
-        self.metrics = {"class": [], "step": [], "model_type": [], "f1_score": [], "precision": [], "accuracy": [],
+        # self.metrics = {"class": [], "step": [], "model_type": [], "f1_score": [], "precision": [], "accuracy": [],
+        #                 "recall": [], "train_ratio": [], "pos_train_img": [], "neg_train_imgs": [], "train_time": [],
+        #                 "pos_class_confidence_0.8": [], "pos_class_confidence_0.5": [],
+        #                 "pos_class_confidence_median": [], "neg_class_confidence_0.8": [],
+        #                 "neg_class_confidence_0.5": [], "neg_class_confidence_median": [],
+        #                 "class_confidence_0.8": [], "class_confidence_0.5": [],
+        #                 "class_confidence_median": [], "actual_pos_imgs_0.8": [], "actual_pos_imgs_0.5": []}
+        self.metrics = {"class": [], "step": [], "model_type": [],"labled_pos": [],"labled_neg": [], "f1_score": [], "precision": [], "accuracy": [],
                         "recall": [], "train_ratio": [], "pos_train_img": [], "neg_train_imgs": [], "train_time": [],
                         "pos_class_confidence_0.8": [], "pos_class_confidence_0.5": [],
                         "pos_class_confidence_median": [], "neg_class_confidence_0.8": [],
                         "neg_class_confidence_0.5": [], "neg_class_confidence_median": [],
-                        "class_confidence_0.8": [], "class_confidence_0.5": [],
-                        "class_confidence_median": [], "actual_pos_imgs_0.8": [], "actual_pos_imgs_0.5": []}
-
+                        "actual_pos_imgs_0.8": [], "actual_pos_imgs_0.5": []}
         self.prediction_prob ={}
+
     # similiarity search class
     def get_annoy_tree(self, num_nodes, embeddings, num_trees, annoy_path):
         t = AnnoyIndex(num_nodes, 'euclidean')
@@ -588,6 +594,9 @@ class Pipeline:
             tmp4 = len(list(paths.list_images(newly_labled_path + "/negative")))
             print(f"Total Images: {tmp1} + {tmp2} = {tmp1+tmp2} positive || {tmp3} + {tmp4} = {tmp3+tmp4} negative")
 
+            self.metrics['labled_pos']= tmp2
+            self.metrics['labled_neg'] = tmp4
+
             #update embeddings with unlabeled image embeddings #TODO check initializations
             #mapping = []
             # if model_type=="encoder": #TODO model type doesnt change after every iteration, even after (...=> f => linear) will this work ?
@@ -657,41 +666,44 @@ class Pipeline:
             self.metrics["neg_class_confidence_median"].append(np.median(tmp_prob3))
             #self.metrics["actual_neg_imgs"].append(len(list(paths.list_images(parameters["test"]["evaluation_path"] + "/negative"))))
 
+            self.metrics["actual_pos_imgs_0.8"].append(self.metrics["pos_train_img"][-1]+self.metrics["pos_class_confidence_0.8"][-1]+self.metrics['labled_pos'][-1])
+            self.metrics["actual_pos_imgs_0.5"].append(self.metrics["pos_train_img"][-1]+self.metrics["pos_class_confidence_0.5"][-1]+self.metrics['labled_pos'][-1])
+
             tmp_prob2.extend(tmp_prob3)
             #TODO add config path
             #tmp_df = pd.DataFrame(tmp_prob2, columns = [f'{iteration}'])
             self.prediction_prob[iteration]=tmp_prob2
             # print("prediciton_prob",self.prediction_prob)
             df = pd.DataFrame.from_dict(self.prediction_prob, orient='index').transpose()
-            df.to_csv(parameters["test"]["prob_csv_path"])
+            df.to_csv(parameters["test"]["prob_csv_path"],index=False)
 
-            #--- forward pass on whole dataset
-            imgs, tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
-                                                      train_models.get_model(), 0.8, parameters['model']['image_size'],paths=True)
-            # print("final prob", tmp_prob)
-            count_8 = 0
-            count_5 = 0
-            tmp_prob2 = []
-            tmp_pos, tmp_pos2 = 0, 0
-            #imgs = list(paths.list_images(parameters["data"]["data_path"]))
-            for i in range(len(tmp_prob)):
-                tmp_prob2.append(tmp_prob[i][0])
-                if tmp_prob[i][0] >= 0.8:
-                    count_8 += 1
-                    if (self.class_name in imgs[i]):
-                        tmp_pos += 1
-                if tmp_prob[i][0] >= 0.5:
-                    count_5 += 1
-                    if (self.class_name in imgs[i]):
-                        tmp_pos2 += 1
-
-            self.metrics["class_confidence_0.8"].append(count_8)
-            self.metrics["class_confidence_0.5"].append(count_5)
-            self.metrics["class_confidence_median"].append(np.median(tmp_prob2))
-            tmp, tmp2 = 0, 0
-            # actual positive imgs = imgs that are actually pos out of the imgs model predicted as positive
-            self.metrics["actual_pos_imgs_0.8"].append(tmp_pos)
-            self.metrics["actual_pos_imgs_0.5"].append(tmp_pos2)
+            # #--- forward pass on whole dataset
+            # imgs, tmp_prob = activelabeler.get_probablities(parameters["data"]["data_path"],
+            #                                           train_models.get_model(), 0.8, parameters['model']['image_size'],paths=True)
+            # # print("final prob", tmp_prob)
+            # count_8 = 0
+            # count_5 = 0
+            # tmp_prob2 = []
+            # tmp_pos, tmp_pos2 = 0, 0
+            # #imgs = list(paths.list_images(parameters["data"]["data_path"]))
+            # for i in range(len(tmp_prob)):
+            #     tmp_prob2.append(tmp_prob[i][0])
+            #     if tmp_prob[i][0] >= 0.8:
+            #         count_8 += 1
+            #         if (self.class_name in imgs[i]):
+            #             tmp_pos += 1
+            #     if tmp_prob[i][0] >= 0.5:
+            #         count_5 += 1
+            #         if (self.class_name in imgs[i]):
+            #             tmp_pos2 += 1
+            #
+            # self.metrics["class_confidence_0.8"].append(count_8)
+            # self.metrics["class_confidence_0.5"].append(count_5)
+            # self.metrics["class_confidence_median"].append(np.median(tmp_prob2))
+            # tmp, tmp2 = 0, 0
+            # # actual positive imgs = imgs that are actually pos out of the imgs model predicted as positive
+            # self.metrics["actual_pos_imgs_0.8"].append(tmp_pos)
+            # self.metrics["actual_pos_imgs_0.5"].append(tmp_pos2)
 
 
             print(f"iteration {iteration} metrics = {self.metrics}")
@@ -701,7 +713,7 @@ class Pipeline:
                          'neg_class_confidence_median']
             for i in col_names:
                 df[i] = df[i].astype(float).round(2)
-            df.to_csv(parameters["test"]["metric_csv_path"])
+            df.to_csv(parameters["test"]["metric_csv_path"],index=False)
 
 
 
