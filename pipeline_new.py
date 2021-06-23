@@ -96,7 +96,7 @@ class Pipeline:
         self.metrics = {"class": [], "step": [], "model_type": [],"train_ratio": [], "pos_train_img": [], "neg_train_imgs": [], "train_time": [],"labled_pos": [],"labled_neg": [], "f1_score": [], "precision": [], "accuracy": [],
                         "recall": [], "pos_class_confidence_0.8": [], "pos_class_confidence_0.5": [],
                         "pos_class_confidence_median": [], "neg_class_confidence_0.8": [],
-                        "neg_class_confidence_0.5": [], "neg_class_confidence_median": [],
+                        "neg_class_confidence_0.5": [], "neg_class_confidence_median": [], "total_labeling_effort": [],
                         "actual_pos_imgs_0.8": [], "actual_pos_imgs_0.5": []}
         self.prediction_prob ={}
 
@@ -667,6 +667,8 @@ class Pipeline:
 
             self.metrics["actual_pos_imgs_0.8"].append(self.metrics["pos_train_img"][-1]+self.metrics["pos_class_confidence_0.8"][-1]+self.metrics['labled_pos'][-1])
             self.metrics["actual_pos_imgs_0.5"].append(self.metrics["pos_train_img"][-1]+self.metrics["pos_class_confidence_0.5"][-1]+self.metrics['labled_pos'][-1])
+            self.metrics["total_labeling_effort"].append(self.metrics["pos_train_img"][-1]+self.metrics["neg_train_img"][-1]+self.metrics["pos_class_confidence_0.8"][-1]+self.metrics['neg_class_confidence_0.8'][-1])
+
 
             tmp_prob2.extend(tmp_prob3)
             #TODO add config path
