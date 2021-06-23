@@ -65,7 +65,7 @@ class ActiveLabeler():
             #         idx_0 = idx
 
             #finding where idx is in sorted_diff
-            idx_sorted_0 = sorted_diff.index(idx_0)
+            idx_sorted_0 = list(sorted_diff).index(idx_0)
 
             #take n/2 from either side of index_sorted_0, less ele
             tmp1 = sorted_diff[ (idx_sorted_0- (N//2)-1 ) :idx_sorted_0]
