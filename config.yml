@@ -34,8 +34,8 @@ TrainModels:
   config_path:      /content/AL_testing/ActiveLabeler-main/ActiveLabelerModels/config.yaml
 
 ActiveLabeler:
-  sample_size:      30
-  sampling_strategy: "uncertainty" # "random"
+  sample_size:      120
+  sampling_strategy: "uncertainty_balanced" # "random"
 
 AL_main:
   newly_labled_path:  /content/new_label

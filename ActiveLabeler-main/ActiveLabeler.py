@@ -51,6 +51,30 @@ class ActiveLabeler():
             #     return uncertainty[:N]
             # else:
             #     return uncertainty
+        elif name == 'uncertainty_balanced':
+
+            tmp_query = np.array([query[i][0] for i in range(len(query))])
+            difference_array = (tmp_query - 0.5 )
+            sorted_diff = difference_array.argsort()
+
+            #finding index of element closest to zero
+            idx_0 = np.absolute(difference_array).argsort()[0]
+            # idx_0 = sorted_diff[0]
+            # for idx in sorted_diff:
+            #     if abs(difference_array[idx]) < abs(difference_array[idx_0]):
+            #         idx_0 = idx
+
+            #finding where idx is in sorted_diff
+            idx_sorted_0 = sorted_diff.index(idx_0)
+
+            #take n/2 from either side of index_sorted_0, less ele
+            tmp1 = sorted_diff[ (idx_sorted_0- (N//2)-1 ) :idx_sorted_0]
+            tmp2 = sorted_diff[idx_sorted_0+1: (idx_sorted_0 + (N//2) ) ]
+            print( f"uncertainity balanced: {len(tmp1)} + {len(tmp2)} = {len(tmp1) + len(tmp2)}")
+
+            #returning the corresponding indexes tmp1 + tmp2
+            return tmp1.extend(tmp2)
+
         elif name == 'random':
             return [random.randrange(0, len(query), 1) for i in range(N)]
         elif name == 'positive':
