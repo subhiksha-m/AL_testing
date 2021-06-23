@@ -73,7 +73,7 @@ class ActiveLabeler():
             print( f"uncertainity balanced: {len(tmp1)} + {len(tmp2)} = {len(tmp1) + len(tmp2)}")
 
             #returning the corresponding indexes tmp1 + tmp2
-            return tmp1.extend(tmp2)
+            return list(tmp1).extend(list(tmp2))
 
         elif name == 'random':
             return [random.randrange(0, len(query), 1) for i in range(N)]
