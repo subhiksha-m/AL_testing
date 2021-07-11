@@ -66,6 +66,7 @@ class ActiveLabeler():
             # finding where idx is in sorted_diff
             idx_sorted_0 = list(sorted_diff).index(idx_0)
 
+            print("tmp_query- probs - sorted", sorted(tmp_query))
             print("diff arr ", difference_array)
             print("diff arr sorted ", np.sort(difference_array))
             print("middle value idx", idx_sorted_0)
@@ -103,38 +104,76 @@ class ActiveLabeler():
         self.embeddings = emb
         self.images_path = data_paths
 
-    def get_images_to_label_offline(self, model, sampling_strat, sample_size, strategy_params, device):
+    def get_images_to_label_offline(self, model, sampling_strat, sample_size, strategy_params, device,path):
         # Load stuff
         model.eval()
         if device == "cuda":
             model.cuda()
-        dataset = self.embeddings
-        image_paths = self.images_path
 
-        # Forward Pass
+
+
+        # dataset = self.embeddings
+        # image_paths = self.images_path
+        #
+        # # Forward Pass
+        # with torch.no_grad():
+        #     bs = 128
+        #     if len(dataset) < bs:
+        #         bs = 1
+        #     loader = DataLoader(dataset, batch_size=bs, shuffle=False)
+        #     model_predictions = []
+        #     for batch in tqdm(loader):
+        #         if device == "cuda":
+        #             x = torch.FloatTensor(batch).to(device)  # torch.cuda.FloatTensor(batch)
+        #         else:
+        #             x = torch.FloatTensor(batch)
+        #         x = x.view(x.size(0), -1)
+        #         predictions = model.linear_model(x)
+        #         model_predictions.extend(predictions.cpu().detach().numpy())
+
+        unlabled_probablites = []
+        # model.eval()
+        # model.cuda()
+        image_size = 256
+
+        def to_tensor(pil):
+            return torch.tensor(np.array(pil)).permute(2, 0, 1).float()
+
+        t = transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+            transforms.Lambda(to_tensor)
+        ])
+        dataset = ImageFolder(path, transform=t)
+        img_paths = [i[0] for i in dataset.imgs]
         with torch.no_grad():
             bs = 128
             if len(dataset) < bs:
                 bs = 1
             loader = DataLoader(dataset, batch_size=bs, shuffle=False)
-            model_predictions = []
             for batch in tqdm(loader):
-                if device == "cuda":
-                    x = torch.FloatTensor(batch).to(device)  # torch.cuda.FloatTensor(batch)
-                else:
-                    x = torch.FloatTensor(batch)
-                predictions = model.linear_model(x)
-                model_predictions.extend(predictions.cpu().detach().numpy())
+                x = batch[0].cuda()
+                # predictions = model(x)
+                feats = model.encoder(x)[-1]
+                feats = feats.view(feats.size(0), -1)
+                predictions = model.linear_model(feats)
+                unlabled_probablites.extend(predictions.detach().cpu().numpy())
+
+
+
 
         # Strategy
-        model_predictions = np.array(model_predictions)
+        #model_predictions = np.array(model_predictions)
+        unlabled_probablites = np.array(unlabled_probablites)
         # print("m_predic",model_predictions)
-        subset = self.strategy(sampling_strat, model_predictions, sample_size, strategy_params)
+        #subset = self.strategy(sampling_strat, model_predictions, sample_size, strategy_params)
+        subset = self.strategy(sampling_strat, unlabled_probablites, sample_size, strategy_params)
         # print("subset",subset)
 
         # Stuff to return
-        strategy_embeddings = np.array([i for i in dataset])[subset]
-        strategy_images = np.array([i for i in image_paths])[subset]
+        #strategy_embeddings = np.array([i for i in dataset])[subset]
+        strategy_embeddings = []
+        #strategy_images = np.array([i for i in image_paths])[subset]
+        strategy_images = np.array([i for i in img_paths])[subset]
         # print("model pred", model_predictions)
         # print("strategy_images", strategy_images)
 

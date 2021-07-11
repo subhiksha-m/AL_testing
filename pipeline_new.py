@@ -560,8 +560,20 @@ class Pipeline:
 
             # AL.getimgstolabel => uncertain imgs => nn sampling_strategy
             curr_model = model if model_type =="model" else encoder
+
+            #unlabled images redundant
+            if os.path.exists(parameters["test"]["evaluation_path"]):
+                shutil.rmtree(parameters["test"]["evaluation_path"])
+            pathlib.Path(parameters["test"]["evaluation_path"]+ "/combined/Unlabeled").mkdir(parents=True, exist_ok=True)
+
+            for img in self.unlabeled_list:
+                src = "/content/Dataset/Unlabeled" + "/" + img.split('/')[-1]
+                dest = ("/content/Evaluation_Data/combined/Unlabeled"  + "/" + img.split('/')[-1])
+                shutil.copy(src, dest)
+
             strategy_embeddings, strategy_images = activelabeler.get_images_to_label_offline(
-                train_models.get_model(),parameters['ActiveLabeler']['sampling_strategy'] , parameters['ActiveLabeler']['sample_size'], None, "cuda")
+                train_models.get_model(),parameters['ActiveLabeler']['sampling_strategy'] , parameters['ActiveLabeler']['sample_size'], None, "cuda",parameters["test"]["evaluation_path"]+"/combined")
+
             #train_models.get_model().train_encoder=False
             # train_models.get_model().freeze_encoder()
             #print(strategy_images)
@@ -633,6 +645,8 @@ class Pipeline:
 
 
             tmp_prob= activelabeler.get_probablities(parameters["test"]["evaluation_path"]+"/positive",train_models.get_model(),0.8,parameters['model']['image_size'])
+            print("tmp_prob- probs - sorted-pos", sorted(tmp_prob))
+            tmp_c = tmp_prob
             count_8 = 0
             count_5 = 0
             tmp_prob2 = []
@@ -650,7 +664,9 @@ class Pipeline:
 
             tmp_prob = activelabeler.get_probablities(parameters["test"]["evaluation_path"] + "/negative",
                                                       train_models.get_model(), 0.8, parameters['model']['image_size'])
-
+            print("tmp_prob- probs - sorted-neg", sorted(tmp_prob))
+            tmp_c = tmp_c + tmp_prob
+            print("tmp_c- probs - sorted-combined", sorted(tmp_c))
             count_8 = 0
             count_5 = 0
             tmp_prob3 = []
