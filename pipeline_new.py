@@ -432,7 +432,13 @@ class Pipeline:
             print(f"iteration {iteration}")
 
             print("Enter l for Linear, f for finetuning and q to quit")  # TODO unrecognizable char
-            input_counter = input()
+
+            #input_counter = input()
+
+            # automatic iteration
+            input_counter = 'f'
+            if iteration == 5: input_counter = 'q'
+
             if input_counter == 'q': break
 
             if input_counter == 'l':
