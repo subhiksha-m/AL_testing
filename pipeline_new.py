@@ -437,7 +437,7 @@ class Pipeline:
 
             # automatic iteration
             input_counter = 'f'
-            if iteration == 5: input_counter = 'q'
+            if iteration == 9: input_counter = 'q'
 
             if input_counter == 'q': break
 

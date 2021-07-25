@@ -30,6 +30,27 @@ class ActiveLabeler():
 
         :returns list/numpy array of the index of images in the sebset.
         """
+        if name == 'gaussian':
+            def gaussian(x, mean, sigma):
+                a = (1 / (sigma * np.sqrt(2 * np.pi)))
+                exp_val = - (1 / 2) * (((x - mean) ** 2) / (sigma ** 2))
+
+                return (a * np.exp(exp_val))
+
+            def get_gaussian_weights(confidences):
+                mean = 0.5  # TUNABLE: This is where you want your peak.
+                sigma = 0.2  # TUNABLE: This defines how exponential your gaussian curve is around the peak.
+                return [gaussian(conf_i, mean, sigma) for conf_i in confidences]
+
+            def get_samples(image_list, confidences,number_of_samples):
+                sample_wts = get_gaussian_weights(confidences)  # N weight values corresponding to each image
+                picked_samples = np.random.choice(image_list, number_of_samples, weights=sample_wts)  # picked images
+
+                return picked_samples
+
+            selected_samples = get_samples(strategy_params['image_list'], query,N)
+            return selected_samples
+
         if name == 'uncertainty':
 
             # print("std dev", query.std(axis=1)[np.argsort(query.std(axis=1))])
@@ -166,6 +187,7 @@ class ActiveLabeler():
         unlabled_probablites = np.array(unlabled_probablites)
         # print("m_predic",model_predictions)
         #subset = self.strategy(sampling_strat, model_predictions, sample_size, strategy_params)
+        strategy_params['image_list']= img_paths
         subset = self.strategy(sampling_strat, unlabled_probablites, sample_size, strategy_params)
         # print("subset",subset)
 
@@ -173,7 +195,11 @@ class ActiveLabeler():
         #strategy_embeddings = np.array([i for i in dataset])[subset]
         strategy_embeddings = []
         #strategy_images = np.array([i for i in image_paths])[subset]
-        strategy_images = np.array([i for i in img_paths])[subset]
+
+        if(sampling_strat=="gaussian"):
+            strategy_images = subset
+        else:
+            strategy_images = np.array([i for i in img_paths])[subset]
         # print("model pred", model_predictions)
         # print("strategy_images", strategy_images)
 
