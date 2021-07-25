@@ -35,7 +35,11 @@ class ActiveLabeler():
                 a = (1 / (sigma * np.sqrt(2 * np.pi)))
                 exp_val = - (1 / 2) * (((x - mean) ** 2) / (sigma ** 2))
 
-                return (a * np.exp(exp_val))
+                #return (a * np.exp(exp_val))
+                tmp = list(a * np.exp(exp_val))[0]
+                return tmp
+
+
 
             def get_gaussian_weights(confidences):
                 mean = 0.5  # TUNABLE: This is where you want your peak.
