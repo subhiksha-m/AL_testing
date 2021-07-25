@@ -44,7 +44,7 @@ class ActiveLabeler():
 
             def get_samples(image_list, confidences,number_of_samples):
                 sample_wts = get_gaussian_weights(confidences)  # N weight values corresponding to each image
-                picked_samples = np.random.choice(image_list, number_of_samples, weights=sample_wts)  # picked images
+                picked_samples = np.random.choice(image_list,replace=False,size=number_of_samples, p=sample_wts)  # picked images
 
                 return picked_samples
 
