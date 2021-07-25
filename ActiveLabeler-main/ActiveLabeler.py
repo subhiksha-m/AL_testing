@@ -187,6 +187,7 @@ class ActiveLabeler():
         unlabled_probablites = np.array(unlabled_probablites)
         # print("m_predic",model_predictions)
         #subset = self.strategy(sampling_strat, model_predictions, sample_size, strategy_params)
+        strategy_params = {}
         strategy_params['image_list']= img_paths
         subset = self.strategy(sampling_strat, unlabled_probablites, sample_size, strategy_params)
         # print("subset",subset)
