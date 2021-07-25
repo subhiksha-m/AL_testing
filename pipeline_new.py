@@ -97,7 +97,7 @@ class Pipeline:
                         "recall": [], "pos_class_confidence_0.8": [], "pos_class_confidence_0.5": [],
                         "pos_class_confidence_median": [], "neg_class_confidence_0.8": [],
                         "neg_class_confidence_0.5": [], "neg_class_confidence_median": [], "total_labeling_effort": [],
-                        "actual_pos_imgs_0.8": [], "actual_pos_imgs_0.5": []}
+                        "actual_pos_imgs_0.8": [], "actual_pos_imgs_0.5": [], "AL_score":[]}
         self.prediction_prob ={}
 
     # similiarity search class
@@ -690,7 +690,7 @@ class Pipeline:
             self.metrics["actual_pos_imgs_0.8"].append(self.metrics["pos_train_img"][-1]+self.metrics["pos_class_confidence_0.8"][-1]+self.metrics['labled_pos'][-1])
             self.metrics["actual_pos_imgs_0.5"].append(self.metrics["pos_train_img"][-1]+self.metrics["pos_class_confidence_0.5"][-1]+self.metrics['labled_pos'][-1])
             self.metrics["total_labeling_effort"].append(self.metrics["pos_train_img"][-1]+self.metrics["neg_train_imgs"][-1]+self.metrics["pos_class_confidence_0.8"][-1]+self.metrics['neg_class_confidence_0.8'][-1])
-
+            self.metrics["AL_score"].append(self.metrics["actual_pos_imgs_0.8"][-1]/self.metrics["total_labeling_effort"][-1])
 
             tmp_prob2.extend(tmp_prob3)
             #TODO add config path
@@ -733,7 +733,7 @@ class Pipeline:
             df = pd.DataFrame.from_dict(self.metrics, orient='index').transpose()
             # rounding to 2
             col_names = ['f1_score', 'precision', 'accuracy', 'recall', 'train_ratio', 'pos_class_confidence_median',
-                         'neg_class_confidence_median']
+                         'neg_class_confidence_median','AL_score']
             for i in col_names:
                 df[i] = df[i].astype(float).round(2)
             df.to_csv(parameters["test"]["metric_csv_path"],index=False)
