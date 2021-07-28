@@ -6,6 +6,7 @@ import yaml
 import random
 random.seed(100)
 
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 #Internal imports
 # sys.path.insert(0, "Self-Supervised-Learner")
 # sys.path.insert(1, "ActiveLabelerModels")
@@ -44,7 +45,15 @@ class TrainModels():
 
     def train_all(self, training_dataset, validation_dataset):
         self.model.unfreeze_encoder()
-        trainer = pl.Trainer(gpus=1, max_epochs=self.parameters['training']['epochs'])
+        early_stop_callback = EarlyStopping(
+            monitor='val_loss',
+            min_delta=0.001,
+            patience=20,
+            verbose=False,
+            mode='min'
+        )
+        trainer = pl.Trainer(gpus=1, max_epochs=self.parameters['training']['epochs'], callbacks=[early_stop_callback])
+        # trainer = pl.Trainer(gpus=1, max_epochs=self.parameters['training']['epochs'])
         trainer.fit(self.model, training_dataset, validation_dataset)
         Path(self.model_path).mkdir(parents=True, exist_ok=True)
         trainer.save_checkpoint(f"{self.model_path}{self.log_name}_{self.log_count}.ckpt")
